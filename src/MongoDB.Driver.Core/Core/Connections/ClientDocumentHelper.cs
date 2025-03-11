@@ -52,7 +52,7 @@ namespace MongoDB.Driver.Core.Connections
         {
             var assembly = typeof(ConnectionInitializer).GetTypeInfo().Assembly;
             var fileVersionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
-            var driverVersion = fileVersionAttribute.Version;
+            var driverVersion = "2.8.0";
 
             return CreateDriverDocument(driverVersion);
         }

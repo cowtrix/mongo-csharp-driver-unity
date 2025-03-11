@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Linq.Expressions
             get { return ExpressionType.Extension; }
         }
 
-        protected sealed override Expression Accept(ExpressionVisitor visitor)
+        /*protected sealed override Expression Accept(ExpressionVisitor visitor)
         {
             var mongoVisitor = visitor as ExtensionExpressionVisitor;
             if (mongoVisitor != null)
@@ -34,7 +34,7 @@ namespace MongoDB.Driver.Linq.Expressions
                 return Accept(mongoVisitor);
             }
             return base.Accept(visitor);
-        }
+        }*/
 
         protected internal virtual Expression Accept(ExtensionExpressionVisitor visitor)
         {

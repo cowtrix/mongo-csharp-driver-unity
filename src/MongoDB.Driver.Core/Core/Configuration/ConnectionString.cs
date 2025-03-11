@@ -27,6 +27,7 @@ using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Shared;
+using UnityEngine.Networking;
 
 namespace MongoDB.Driver.Core.Configuration
 {

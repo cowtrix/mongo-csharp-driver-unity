@@ -101,7 +101,7 @@ namespace MongoDB.Driver.Linq.Processors
             return base.VisitConstant(node);
         }
 
-        protected override Expression VisitLambda<T>(Expression<T> node)
+        /*protected override Expression VisitLambda<T>(Expression<T> node)
         {
             // Don't visit the parameters. We cannot replace a parameter expression
             // with a document and we don't have a new parameter type to use because
@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Linq.Processors
             return node.Update(
                 Visit(node.Body),
                 node.Parameters);
-        }
+        }*/
 
         protected override Expression VisitMember(MemberExpression node)
         {
