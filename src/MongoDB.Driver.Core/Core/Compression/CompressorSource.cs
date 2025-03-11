@@ -78,16 +78,6 @@ namespace MongoDB.Driver.Core.Compression
                     return new NoopCompressor();
                 case CompressorType.Snappy:
                     return new SnappyCompressor();
-                case CompressorType.Zlib:
-                    {
-                        int? zlibCompressionLevel = null;
-                        if (compressorConfiguration.Properties.ContainsKey("Level"))
-                        {
-                            zlibCompressionLevel = (int)compressorConfiguration.Properties["Level"];
-                        }
-
-                        return new ZlibCompressor(zlibCompressionLevel);
-                    }
             }
 
             throw new NotSupportedException($"The compressor {compressorConfiguration.Type} is not supported.");

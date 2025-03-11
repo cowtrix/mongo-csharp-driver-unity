@@ -100,7 +100,7 @@ namespace MongoDB.Driver.Linq.Processors
             return base.VisitConstant(node);
         }
 
-        /*protected override Expression VisitLambda<T>(Expression<T> node)
+        protected override Expression VisitLambda<T>(Expression<T> node)
         {
             var oldIsOutOfCurrentScope = _isOutOfCurrentScope;
             if (_isInEmbeddedPipeline)
