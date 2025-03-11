@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Driver.Core.Operations;
 
 namespace MongoDB.Driver
 {
@@ -44,6 +45,52 @@ namespace MongoDB.Driver
         /// Gets the settings.
         /// </summary>
         MongoDatabaseSettings Settings { get; }
+
+        /// <summary>
+        /// Runs an aggregation pipeline.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A cursor.</returns>
+        IAsyncCursor<TResult> Aggregate<TResult>(PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Runs an aggregation pipeline.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="session">The session.</param>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A cursor.
+        /// </returns>
+        IAsyncCursor<TResult> Aggregate<TResult>(IClientSessionHandle session, PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Runs an aggregation pipeline.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A Task whose result is a cursor.</returns>
+        Task<IAsyncCursor<TResult>> AggregateAsync<TResult>(PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Runs an aggregation pipeline.
+        /// </summary>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="session">The session.</param>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="options">The options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// A Task whose result is a cursor.
+        /// </returns>
+        Task<IAsyncCursor<TResult>> AggregateAsync<TResult>(IClientSessionHandle session, PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Creates the collection with the specified name.
@@ -354,7 +401,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        IAsyncCursor<TResult> Watch<TResult>(
+        IChangeStreamCursor<TResult> Watch<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -370,7 +417,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        IAsyncCursor<TResult> Watch<TResult>(
+        IChangeStreamCursor<TResult> Watch<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -386,7 +433,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        Task<IAsyncCursor<TResult>> WatchAsync<TResult>(
+        Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -402,7 +449,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        Task<IAsyncCursor<TResult>> WatchAsync<TResult>(
+        Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,

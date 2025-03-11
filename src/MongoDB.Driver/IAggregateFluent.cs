@@ -235,6 +235,24 @@ namespace MongoDB.Driver
         IAggregateFluent<TResult> Match(FilterDefinition<TResult> filter);
 
         /// <summary>
+        /// Appends a merge stage to the pipeline and executes it, and then returns a cursor to read the contents of the output collection.
+        /// </summary>
+        /// <param name="outputCollection">The output collection.</param>
+        /// <param name="mergeOptions">The merge options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A cursor.</returns>
+        IAsyncCursor<TOutput> Merge<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Appends a merge stage to the pipeline and executes it, and then returns a cursor to read the contents of the output collection.
+        /// </summary>
+        /// <param name="outputCollection">The output collection.</param>
+        /// <param name="mergeOptions">The merge options.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A cursor.</returns>
+        Task<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Appends a match stage to the pipeline that matches derived documents and changes the result type to the derived type.
         /// </summary>
         /// <typeparam name="TNewResult">The type of the derived documents.</typeparam>
@@ -275,6 +293,14 @@ namespace MongoDB.Driver
         /// <param name="newRoot">The new root.</param>
         /// <returns>The fluent aggregate interface.</returns>
         IAggregateFluent<TNewResult> ReplaceRoot<TNewResult>(AggregateExpressionDefinition<TResult, TNewResult> newRoot);
+
+        /// <summary>
+        /// Appends a $replaceWith stage to the pipeline.
+        /// </summary>
+        /// <typeparam name="TNewResult">The type of the new result.</typeparam>
+        /// <param name="newRoot">The new root.</param>
+        /// <returns>The fluent aggregate interface.</returns>
+        IAggregateFluent<TNewResult> ReplaceWith<TNewResult>(AggregateExpressionDefinition<TResult, TNewResult> newRoot);
 
         /// <summary>
         /// Appends a skip stage to the pipeline.

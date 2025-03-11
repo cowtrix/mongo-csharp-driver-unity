@@ -17,7 +17,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Clusters;
 
 namespace MongoDB.Driver.Core.Bindings
 {

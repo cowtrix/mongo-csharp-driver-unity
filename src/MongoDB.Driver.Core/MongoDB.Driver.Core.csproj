@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net452;netstandard1.5</TargetFrameworks>
+    <TargetFrameworks>netstandard1.5;net452</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
@@ -14,7 +14,7 @@
     <Company>MongoDB Inc.</Company>
     <Copyright>Copyright © 2010-present MongoDB Inc.</Copyright>
     <Description>Official MongoDB supported Driver Core library. See http://www.mongodb.org/display/DOCS/CSharp+Language+Center for more details.</Description>
-    <Authors>rstam;craiggwilson</Authors>
+    <Authors>vincentkam;dmitry_lukyanov;rstam;craiggwilson</Authors>
     <PackageIconUrl>http://jobs.mongodb.org/files/logos/889002/889002.png</PackageIconUrl>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageDescription>Core Component of the Official MongoDB .NET Driver.</PackageDescription>
@@ -39,15 +39,20 @@
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>MongoDB.Driver</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="1.2.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.6.2" PrivateAssets="All" />
+    <PackageReference Include="SharpCompress" Version="0.23.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net452'">
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.0.0" />
+    <PackageReference Include="Snappy.NET">
+      <Version>1.1.1.8</Version>
+    </PackageReference>
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.5'">
@@ -55,8 +60,9 @@
     <PackageReference Include="System.Diagnostics.TextWriterTraceListener" Version="4.0.0" />
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-    <PackageReference Include="System.Net.Security" Version="4.0.0" />
+    <PackageReference Include="System.Net.Security" Version="4.3.2" />
     <PackageReference Include="System.Security.SecureString" Version="4.0.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>

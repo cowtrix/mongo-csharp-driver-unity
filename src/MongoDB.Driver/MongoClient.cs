@@ -322,7 +322,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override IAsyncCursor<TResult> Watch<TResult>(
+        public override IChangeStreamCursor<TResult> Watch<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -331,7 +331,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override IAsyncCursor<TResult> Watch<TResult>(
+        public override IChangeStreamCursor<TResult> Watch<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -344,7 +344,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override Task<IAsyncCursor<TResult>> WatchAsync<TResult>(
+        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -353,7 +353,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override Task<IAsyncCursor<TResult>> WatchAsync<TResult>(
+        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -451,7 +451,8 @@ namespace MongoDB.Driver
             return new ListDatabasesOperation(messageEncoderSettings)
             {
                 Filter = options.Filter?.Render(BsonDocumentSerializer.Instance, BsonSerializer.SerializerRegistry),
-                NameOnly = options.NameOnly
+                NameOnly = options.NameOnly,
+                RetryRequested = _settings.RetryReads
             };
         }
 
@@ -477,7 +478,12 @@ namespace MongoDB.Driver
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options)
         {
-            return ChangeStreamHelper.CreateChangeStreamOperation(pipeline, options, _settings.ReadConcern, GetMessageEncoderSettings());
+            return ChangeStreamHelper.CreateChangeStreamOperation(
+                pipeline, 
+                options, 
+                _settings.ReadConcern, 
+                GetMessageEncoderSettings(), 
+                _settings.RetryReads);
         }
 
         private TResult ExecuteReadOperation<TResult>(IClientSessionHandle session, IReadOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
@@ -524,7 +530,7 @@ namespace MongoDB.Driver
 
         private IClientSessionHandle StartImplicitSession(bool areSessionsSupported)
         {
-            var options = new ClientSessionOptions();
+            var options = new ClientSessionOptions { CausalConsistency = false };
 
             ICoreSessionHandle coreSession;
 #pragma warning disable 618

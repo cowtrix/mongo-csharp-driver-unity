@@ -35,10 +35,12 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __aggregateGraphLookupStage = new Feature("AggregateGraphLookupStage", new SemanticVersion(3, 4, 0, "rc0"));
         private static readonly Feature __aggregateHint = new Feature("AggregateHint", new SemanticVersion(3, 6, 0, "rc0"));
         private static readonly Feature __aggregateLet = new Feature("AggregateLet", new SemanticVersion(3, 6, 0));
-        private static readonly Feature __aggregateOut = new Feature("Aggregate", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __aggregateMerge = new Feature("AggregateMerge", new SemanticVersion(4, 2, 0));
+        private static readonly Feature __aggregateOut = new Feature("AggregateOut", new SemanticVersion(2, 6, 0));
         private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new SemanticVersion(3, 5, 11));
         private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new SemanticVersion(3, 2, 0));
         private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new SemanticVersion(3, 5, 11));
+        private static readonly Feature __changeStreamPostBatchResumeToken = new Feature("ChangeStreamPostBatchResumeToken", new SemanticVersion(4, 0 ,7));
         private static readonly CollationFeature __collation = new CollationFeature("Collation", new SemanticVersion(3, 3, 11));
         private static readonly Feature __commandMessage = new Feature("CommandMessage", new SemanticVersion(3, 6, 0));
         private static readonly CommandsThatWriteAcceptWriteConcernFeature __commandsThatWriteAcceptWriteConcern = new CommandsThatWriteAcceptWriteConcernFeature("CommandsThatWriteAcceptWriteConcern", new SemanticVersion(3, 3, 11));
@@ -49,10 +51,13 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __eval = new Feature("Eval", new SemanticVersion(0, 0, 0), new SemanticVersion(4, 1, 0, ""));
         private static readonly Feature __explainCommand = new Feature("ExplainCommand", new SemanticVersion(3, 0, 0));
         private static readonly Feature __failPoints = new Feature("FailPoints", new SemanticVersion(2, 4, 0));
+        private static readonly Feature __failPointsFailCommand = new Feature("FailPointsFailCommand", new SemanticVersion(4, 0, 0));
         private static readonly Feature __findAndModifyWriteConcern = new Feature("FindAndModifyWriteConcern", new SemanticVersion(3, 2, 0));
         private static readonly Feature __findCommand = new Feature("FindCommand", new SemanticVersion(3, 2, 0));
         private static readonly Feature __geoNearCommand = new Feature("GeoNearCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 0, ""));
-        private static readonly Feature __groupCommand = new Feature("GroupCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 0, 0, "rc1"));
+        private static readonly Feature __groupCommand = new Feature("GroupCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 1, ""));
+        private static readonly Feature __keepConnectionPoolWhenNotMasterConnectionException = new Feature("KeepConnectionPoolWhenNotMasterConnectionException", new SemanticVersion(4, 1, 10));
+        private static readonly Feature __keepConnectionPoolWhenReplSetStepDown = new Feature("KeepConnectionPoolWhenReplSetStepDown", new SemanticVersion(4, 1, 10));
         private static readonly Feature __killCursorsCommand = new Feature("KillCursorsCommand", new SemanticVersion(3, 2, 0));
         private static readonly Feature __listCollectionsCommand = new Feature("ListCollectionsCommand", new SemanticVersion(3, 0, 0));
         private static readonly Feature __listDatabasesFilter = new Feature("ListDatabasesFilter", new SemanticVersion(3, 4, 2));
@@ -64,12 +69,15 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __mmapV1StorageEngine = new Feature("MmapV1StorageEngine", new SemanticVersion(0, 0, 0), new SemanticVersion(4, 1, 0, ""));
         private static readonly Feature __partialIndexes = new Feature("PartialIndexes", new SemanticVersion(3, 2, 0));
         private static readonly ReadConcernFeature __readConcern = new ReadConcernFeature("ReadConcern", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __retryableReads = new Feature("RetryableReads", new SemanticVersion(3, 6, 0));
         private static readonly Feature __scramSha1Authentication = new Feature("ScramSha1Authentication", new SemanticVersion(3, 0, 0));
         private static readonly Feature __scramSha256Authentication = new Feature("ScramSha256Authentication", new SemanticVersion(4, 0, 0, ""));
         private static readonly Feature __serverExtractsUsernameFromX509Certificate = new Feature("ServerExtractsUsernameFromX509Certificate", new SemanticVersion(3, 3, 12));
-        private static readonly Feature __transactions = new Feature("Transactions", new SemanticVersion(3, 7, 0));
+        private static readonly Feature __shardedTransactions = new Feature("ShardedTransactions", new SemanticVersion(4, 1, 6));
+        private static readonly Feature __transactions = new Feature("Transactions", new SemanticVersion(4, 0, 0));
         private static readonly Feature __userManagementCommands = new Feature("UserManagementCommands", new SemanticVersion(2, 6, 0));
         private static readonly Feature __views = new Feature("Views", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __wildcardIndexes = new Feature("WildcardIndexes", new SemanticVersion(4, 1, 6));
         private static readonly Feature __writeCommands = new Feature("WriteCommands", new SemanticVersion(2, 6, 0));
 
         /// <summary>
@@ -133,6 +141,11 @@ namespace MongoDB.Driver.Core.Misc
         public static Feature AggregateLet => __aggregateLet;
 
         /// <summary>
+        /// Gets the aggregate merge feature.
+        /// </summary>
+        public static Feature AggregateMerge => __aggregateMerge;
+
+        /// <summary>
         /// Gets the aggregate out feature.
         /// </summary>
         public static Feature AggregateOut => __aggregateOut;
@@ -151,6 +164,11 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the aggregate $changeStream stage feature.
         /// </summary>
         public static Feature ChangeStreamStage => __changeStreamStage;
+
+        /// <summary>
+        /// Gets the change stream post batch resume token feature.
+        /// </summary>
+        public static Feature ChangeStreamPostBatchResumeToken => __changeStreamPostBatchResumeToken;
 
         /// <summary>
         /// Gets the collation feature.
@@ -203,6 +221,11 @@ namespace MongoDB.Driver.Core.Misc
         public static Feature FailPoints => __failPoints;
 
         /// <summary>
+        /// Gets the fail points fail command feature.
+        /// </summary>
+        public static Feature FailPointsFailCommand => __failPointsFailCommand;
+
+        /// <summary>
         /// Gets the find and modify write concern feature.
         /// </summary>
         public static Feature FindAndModifyWriteConcern => __findAndModifyWriteConcern;
@@ -221,6 +244,16 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the group command feature.
         /// </summary>
         public static Feature GroupCommand => __groupCommand;
+
+        /// <summary>
+        /// Gets the keep connection pool when NotMaster connection exception feature.
+        /// </summary>
+        public static Feature KeepConnectionPoolWhenNotMasterConnectionException => __keepConnectionPoolWhenNotMasterConnectionException;
+
+        /// <summary>
+        /// Gets the keep connection pool when replSetStepDown feature.
+        /// </summary>
+        public static Feature KeepConnectionPoolWhenReplSetStepDown => __keepConnectionPoolWhenReplSetStepDown;
 
         /// <summary>
         /// Get the killCursors command feature.
@@ -278,6 +311,11 @@ namespace MongoDB.Driver.Core.Misc
         public static ReadConcernFeature ReadConcern => __readConcern;
 
         /// <summary>
+        /// Gets the retryable reads feature.
+        /// </summary>
+        public static Feature RetryableReads => __retryableReads;
+
+        /// <summary>
         /// Gets the scram sha1 authentication feature.
         /// </summary>
         public static Feature ScramSha1Authentication => __scramSha1Authentication;
@@ -291,6 +329,11 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the server extracts username from X509 certificate feature.
         /// </summary>
         public static Feature ServerExtractsUsernameFromX509Certificate => __serverExtractsUsernameFromX509Certificate;
+
+        /// <summary>
+        /// Gets the sharded transactions feature.
+        /// </summary>
+        public static Feature ShardedTransactions => __shardedTransactions;
 
         /// <summary>
         /// Gets the transactions feature.
@@ -311,6 +354,11 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the write commands feature.
         /// </summary>
         public static Feature WriteCommands => __writeCommands;
+
+        /// <summary>
+        /// Gets the wildcard indexes feature.
+        /// </summary>
+        public static Feature WildcardIndexes => __wildcardIndexes;
         #endregion
 
         private readonly string _name;

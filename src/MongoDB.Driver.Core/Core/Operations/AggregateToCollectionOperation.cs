@@ -39,13 +39,30 @@ namespace MongoDB.Driver.Core.Operations
         private Collation _collation;
         private readonly CollectionNamespace _collectionNamespace;
         private string _comment;
+        private readonly DatabaseNamespace _databaseNamespace;
         private BsonValue _hint;
         private TimeSpan? _maxTime;
         private readonly MessageEncoderSettings _messageEncoderSettings;
         private readonly IReadOnlyList<BsonDocument> _pipeline;
+        private ReadConcern _readConcern;
         private WriteConcern _writeConcern;
 
         // constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AggregateToCollectionOperation"/> class.
+        /// </summary>
+        /// <param name="databaseNamespace">The database namespace.</param>
+        /// <param name="pipeline">The pipeline.</param>
+        /// <param name="messageEncoderSettings">The message encoder settings.</param>
+        public AggregateToCollectionOperation(DatabaseNamespace databaseNamespace, IEnumerable<BsonDocument> pipeline, MessageEncoderSettings messageEncoderSettings)
+        {
+            _databaseNamespace = Ensure.IsNotNull(databaseNamespace, nameof(databaseNamespace));
+            _pipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).ToList();
+            _messageEncoderSettings = Ensure.IsNotNull(messageEncoderSettings, nameof(messageEncoderSettings));
+
+            EnsureIsOutputToCollectionPipeline();
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AggregateToCollectionOperation"/> class.
         /// </summary>
@@ -53,12 +70,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="pipeline">The pipeline.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         public AggregateToCollectionOperation(CollectionNamespace collectionNamespace, IEnumerable<BsonDocument> pipeline, MessageEncoderSettings messageEncoderSettings)
+            : this(Ensure.IsNotNull(collectionNamespace, nameof(collectionNamespace)).DatabaseNamespace, pipeline, messageEncoderSettings)
         {
-            _collectionNamespace = Ensure.IsNotNull(collectionNamespace, nameof(collectionNamespace));
-            _pipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).ToList();
-            _messageEncoderSettings = Ensure.IsNotNull(messageEncoderSettings, nameof(messageEncoderSettings));
-
-            EnsureIsOutputToCollectionPipeline();
+            _collectionNamespace = collectionNamespace;
         }
 
         // properties
@@ -122,6 +136,17 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets the database namespace.
+        /// </summary>
+        /// <value>
+        /// The database namespace.
+        /// </value>
+        public DatabaseNamespace DatabaseNamespace
+        {
+            get { return _databaseNamespace; }
+        }
+
+        /// <summary>
         /// Gets or sets the hint. This must either be a BsonString representing the index name or a BsonDocument representing the key pattern of the index.
         /// </summary>
         /// <value>
@@ -165,6 +190,21 @@ namespace MongoDB.Driver.Core.Operations
         public IReadOnlyList<BsonDocument> Pipeline
         {
             get { return _pipeline; }
+        }
+
+        /// <summary>
+        /// Gets or sets the read concern.
+        /// </summary>
+        /// <value>
+        /// The read concern.
+        /// </value>
+        public ReadConcern ReadConcern
+        {
+            get { return _readConcern; }
+            set
+            {
+                _readConcern = value;
+            }
         }
 
         /// <summary>
@@ -213,15 +253,19 @@ namespace MongoDB.Driver.Core.Operations
             var serverVersion = connectionDescription.ServerVersion;
             Feature.Collation.ThrowIfNotSupported(serverVersion, _collation);
 
+            var readConcern = _readConcern != null
+                ? ReadConcernHelper.GetReadConcernForCommand(session, connectionDescription, _readConcern)
+                : null;
             var writeConcern = WriteConcernHelper.GetWriteConcernForCommandThatWrites(session, _writeConcern, serverVersion);
             return new BsonDocument
             {
-                { "aggregate", _collectionNamespace.CollectionName },
+                { "aggregate", _collectionNamespace == null ? (BsonValue)1 : _collectionNamespace.CollectionName },
                 { "pipeline", new BsonArray(_pipeline) },
                 { "allowDiskUse", () => _allowDiskUse.Value, _allowDiskUse.HasValue },
                 { "bypassDocumentValidation", () => _bypassDocumentValidation.Value, _bypassDocumentValidation.HasValue && Feature.BypassDocumentValidation.IsSupported(serverVersion) },
                 { "maxTimeMS", () => MaxTimeHelper.ToMaxTimeMS(_maxTime.Value), _maxTime.HasValue },
                 { "collation", () => _collation.ToBsonDocument(), _collation != null },
+                { "readConcern", readConcern, readConcern != null },
                 { "writeConcern", writeConcern, writeConcern != null },
                 { "cursor", new BsonDocument(), serverVersion >= new SemanticVersion(3, 5, 0) },
                 { "hint", () => _hint, _hint != null },
@@ -238,9 +282,10 @@ namespace MongoDB.Driver.Core.Operations
         private void EnsureIsOutputToCollectionPipeline()
         {
             var lastStage = _pipeline.LastOrDefault();
-            if (lastStage == null || lastStage.GetElement(0).Name != "$out")
+            var lastStageName = lastStage?.GetElement(0).Name;
+            if (lastStage == null || (lastStageName != "$out" && lastStageName != "$merge"))
             {
-                throw new ArgumentException("The last stage of the pipeline for an AggregateOutputToCollectionOperation must have a $out operator.", "pipeline");
+                throw new ArgumentException("The last stage of the pipeline for an AggregateOutputToCollectionOperation must have a $out or $merge operator.", "pipeline");
             }
         }
     }

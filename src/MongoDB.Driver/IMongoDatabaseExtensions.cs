@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Operations;
 
 namespace MongoDB.Driver
 {
@@ -26,6 +27,36 @@ namespace MongoDB.Driver
     public static class IMongoDatabaseExtensions
     {
         /// <summary>
+        /// Begins a fluent aggregation interface.
+        /// </summary>
+        /// <param name="database">The database.</param>
+        /// <param name="options">The options.</param>
+        /// <returns>
+        /// A fluent aggregate interface.
+        /// </returns>
+        public static IAggregateFluent<NoPipelineInput> Aggregate(this IMongoDatabase database, AggregateOptions options = null)
+        {
+            var emptyPipeline = new EmptyPipelineDefinition<NoPipelineInput>(NoPipelineInputSerializer.Instance);
+            return new DatabaseAggregateFluent<NoPipelineInput>(null, database, emptyPipeline, options ?? new AggregateOptions());
+        }
+
+        /// <summary>
+        /// Begins a fluent aggregation interface.
+        /// </summary>
+        /// <param name="database">The database.</param>
+        /// <param name="session">The session.</param>
+        /// <param name="options">The options.</param>
+        /// <returns>
+        /// A fluent aggregate interface.
+        /// </returns>
+        public static IAggregateFluent<NoPipelineInput> Aggregate(this IMongoDatabase database, IClientSessionHandle session, AggregateOptions options = null)
+        {
+            Ensure.IsNotNull(session, nameof(session));
+            var emptyPipeline = new EmptyPipelineDefinition<NoPipelineInput>(NoPipelineInputSerializer.Instance);
+            return new DatabaseAggregateFluent<NoPipelineInput>(session, database, emptyPipeline, options ?? new AggregateOptions());
+        }
+
+        /// <summary>
         /// Watches changes on all collection in a database.
         /// </summary>
         /// <param name="database">The database.</param>
@@ -34,7 +65,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static IAsyncCursor<ChangeStreamDocument<BsonDocument>> Watch(
+        public static IChangeStreamCursor<ChangeStreamDocument<BsonDocument>> Watch(
             this IMongoDatabase database,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -54,7 +85,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static IAsyncCursor<ChangeStreamDocument<BsonDocument>> Watch(
+        public static IChangeStreamCursor<ChangeStreamDocument<BsonDocument>> Watch(
             this IMongoDatabase database,
             IClientSessionHandle session,
             ChangeStreamOptions options = null,
@@ -75,7 +106,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static Task<IAsyncCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
+        public static Task<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
             this IMongoDatabase database,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -95,7 +126,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static Task<IAsyncCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
+        public static Task<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
             this IMongoDatabase database,
             IClientSessionHandle session,
             ChangeStreamOptions options = null,

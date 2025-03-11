@@ -23,23 +23,11 @@ namespace MongoDB.Driver
 {
     internal class ClusterKey
     {
-        #region static
-        // static fields
-        private static readonly int __defaultReceiveBufferSize;
-        private static readonly int __defaultSendBufferSize;
-
-        // static constructor
-        static ClusterKey()
-        {
-            var defaultTcpStreamSettings = new TcpStreamSettings();
-            __defaultReceiveBufferSize = defaultTcpStreamSettings.ReceiveBufferSize;
-            __defaultSendBufferSize = defaultTcpStreamSettings.SendBufferSize;
-        }
-        #endregion
-
         // fields
+        private readonly bool _allowInsecureTls;
         private readonly string _applicationName;
         private readonly Action<ClusterBuilder> _clusterConfigurator;
+        private readonly IReadOnlyList<CompressorConfiguration> _compressors;
         private readonly ConnectionMode _connectionMode;
         private readonly TimeSpan _connectTimeout;
         private readonly IReadOnlyList<MongoCredential> _credentials;
@@ -54,21 +42,23 @@ namespace MongoDB.Driver
         private readonly int _minConnectionPoolSize;
         private readonly int _receiveBufferSize;
         private readonly string _replicaSetName;
+        private readonly ConnectionStringScheme _scheme;
         private readonly string _sdamLogFilename;
         private readonly int _sendBufferSize;
         private readonly IReadOnlyList<MongoServerAddress> _servers;
         private readonly TimeSpan _serverSelectionTimeout;
         private readonly TimeSpan _socketTimeout;
         private readonly SslSettings _sslSettings;
-        private readonly bool _useSsl;
-        private readonly bool _verifySslCertificate;
+        private readonly bool _useTls;
         private readonly int _waitQueueSize;
         private readonly TimeSpan _waitQueueTimeout;
 
         // constructors
         public ClusterKey(
+            bool allowInsecureTls,
             string applicationName,
             Action<ClusterBuilder> clusterConfigurator,
+            IReadOnlyList<CompressorConfiguration> compressors,
             ConnectionMode connectionMode,
             TimeSpan connectTimeout,
             IReadOnlyList<MongoCredential> credentials,
@@ -80,19 +70,23 @@ namespace MongoDB.Driver
             TimeSpan maxConnectionLifeTime,
             int maxConnectionPoolSize,
             int minConnectionPoolSize,
+            int receiveBufferSize,
             string replicaSetName,
+            ConnectionStringScheme scheme,
             string sdamLogFilename,
+            int sendBufferSize,
             IReadOnlyList<MongoServerAddress> servers,
             TimeSpan serverSelectionTimeout,
             TimeSpan socketTimeout,
             SslSettings sslSettings,
-            bool useSsl,
-            bool verifySslCertificate,
+            bool useTls,
             int waitQueueSize,
             TimeSpan waitQueueTimeout)
         {
+            _allowInsecureTls = allowInsecureTls;
             _applicationName = applicationName;
             _clusterConfigurator = clusterConfigurator;
+            _compressors = compressors;
             _connectionMode = connectionMode;
             _connectTimeout = connectTimeout;
             _credentials = credentials;
@@ -104,16 +98,16 @@ namespace MongoDB.Driver
             _maxConnectionLifeTime = maxConnectionLifeTime;
             _maxConnectionPoolSize = maxConnectionPoolSize;
             _minConnectionPoolSize = minConnectionPoolSize;
-            _receiveBufferSize = __defaultReceiveBufferSize; // TODO: add ReceiveBufferSize to MongoServerSettings?
+            _receiveBufferSize = receiveBufferSize;
             _replicaSetName = replicaSetName;
+            _scheme = scheme;
             _sdamLogFilename = sdamLogFilename;
-            _sendBufferSize = __defaultSendBufferSize; // TODO: add SendBufferSize to MongoServerSettings?
+            _sendBufferSize = sendBufferSize;
             _servers = servers;
             _serverSelectionTimeout = serverSelectionTimeout;
             _socketTimeout = socketTimeout;
             _sslSettings = sslSettings;
-            _useSsl = useSsl;
-            _verifySslCertificate = verifySslCertificate;
+            _useTls = useTls;
             _waitQueueSize = waitQueueSize;
             _waitQueueTimeout = waitQueueTimeout;
 
@@ -121,8 +115,10 @@ namespace MongoDB.Driver
         }
 
         // properties
+        public bool AllowInsecureTls => _allowInsecureTls;
         public string ApplicationName { get { return _applicationName; } }
         public Action<ClusterBuilder> ClusterConfigurator { get { return _clusterConfigurator; } }
+        public IReadOnlyList<CompressorConfiguration> Compressors { get { return _compressors; } }
         public ConnectionMode ConnectionMode { get { return _connectionMode; } }
         public TimeSpan ConnectTimeout { get { return _connectTimeout; } }
         public IReadOnlyList<MongoCredential> Credentials { get { return _credentials; } }
@@ -136,14 +132,14 @@ namespace MongoDB.Driver
         public int MinConnectionPoolSize { get { return _minConnectionPoolSize; } }
         public int ReceiveBufferSize { get { return _receiveBufferSize; } }
         public string ReplicaSetName { get { return _replicaSetName; } }
+        public ConnectionStringScheme Scheme { get { return _scheme; } }
         public string SdamLogFilename { get { return _sdamLogFilename; }}
         public int SendBufferSize { get { return _sendBufferSize; } }
         public IReadOnlyList<MongoServerAddress> Servers { get { return _servers; } }
         public TimeSpan ServerSelectionTimeout { get { return _serverSelectionTimeout; } }
         public TimeSpan SocketTimeout { get { return _socketTimeout; } }
         public SslSettings SslSettings { get { return _sslSettings; } }
-        public bool UseSsl { get { return _useSsl; } }
-        public bool VerifySslCertificate { get { return _verifySslCertificate; } }
+        public bool UseTls => _useTls;
         public int WaitQueueSize { get { return _waitQueueSize; } }
         public TimeSpan WaitQueueTimeout { get { return _waitQueueTimeout; } }
 
@@ -166,8 +162,10 @@ namespace MongoDB.Driver
             var rhs = (ClusterKey)obj;
             return
                 _hashCode == rhs._hashCode && // fail fast
+                _allowInsecureTls == rhs._allowInsecureTls &&
                 _applicationName == rhs._applicationName &&
                 object.ReferenceEquals(_clusterConfigurator, rhs._clusterConfigurator) &&
+                _compressors.SequenceEqual(rhs._compressors) &&
                 _connectionMode == rhs._connectionMode &&
                 _connectTimeout == rhs._connectTimeout &&
                 _credentials.SequenceEqual(rhs._credentials) &&
@@ -181,14 +179,14 @@ namespace MongoDB.Driver
                 _minConnectionPoolSize == rhs._minConnectionPoolSize &&
                 _receiveBufferSize == rhs._receiveBufferSize &&
                 _replicaSetName == rhs._replicaSetName &&
+                _scheme == rhs._scheme &&
                 _sdamLogFilename == rhs._sdamLogFilename &&
                 _sendBufferSize == rhs._sendBufferSize &&
                 _servers.SequenceEqual(rhs._servers) &&
                 _serverSelectionTimeout == rhs._serverSelectionTimeout &&
                 _socketTimeout == rhs._socketTimeout &&
                 object.Equals(_sslSettings, rhs._sslSettings) &&
-                _useSsl == rhs._useSsl &&
-                _verifySslCertificate == rhs._verifySslCertificate &&
+                _useTls == rhs._useTls &&
                 _waitQueueSize == rhs._waitQueueSize &&
                 _waitQueueTimeout == rhs._waitQueueTimeout;
         }

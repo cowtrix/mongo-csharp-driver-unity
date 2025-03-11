@@ -341,9 +341,10 @@ namespace MongoDB.Driver
                 {
                     var renderedOptions = new BsonDocument
                     {
-                        { "fullDocument", MongoUtils.ToCamelCase(options.FullDocument.ToString()) },
+                        { "fullDocument", () => MongoUtils.ToCamelCase(options.FullDocument.ToString()), options.FullDocument != ChangeStreamFullDocumentOption.Default },
                         { "allChangesForCluster", true, options.AllChangesForCluster ?? false },
                         { "resumeAfter", options.ResumeAfter, options.ResumeAfter != null },
+                        { "startAfter", options.StartAfter, options.StartAfter != null }, 
                         { "startAtOperationTime", options.StartAtOperationTime, options.StartAtOperationTime != null }
                     };
                     var document = new BsonDocument(operatorName, renderedOptions);
@@ -927,6 +928,108 @@ namespace MongoDB.Driver
         }
 
         /// <summary>
+        /// Creates a $merge stage.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="outputCollection">The output collection.</param>
+        /// <param name="mergeOptions">The merge options.</param>
+        /// <returns>The stage.</returns>
+        public static PipelineStageDefinition<TInput, TOutput> Merge<TInput, TOutput>(
+            IMongoCollection<TOutput> outputCollection,
+            MergeStageOptions<TOutput> mergeOptions)
+        {
+            Ensure.IsNotNull(outputCollection, nameof(outputCollection));
+            Ensure.IsNotNull(mergeOptions, nameof(mergeOptions));
+
+            if (mergeOptions.LetVariables != null && mergeOptions.WhenMatched != MergeStageWhenMatched.Pipeline)
+            {
+                throw new ArgumentException("LetVariables can only be set when WhenMatched == Pipeline.");
+            }
+
+            if (mergeOptions.WhenMatchedPipeline == null)
+            {
+                if (mergeOptions.WhenMatched == MergeStageWhenMatched.Pipeline)
+                {
+                    throw new ArgumentException("WhenMatchedPipeline is required when WhenMatched == Pipeline.");
+                }
+            }
+            else
+            {
+                if (mergeOptions.WhenMatched != MergeStageWhenMatched.Pipeline)
+                {
+                    throw new ArgumentException("WhenMatchedPipeline can only be set when WhenMatched == Pipeline.");
+                }
+            }
+
+            const string operatorName = "$merge";
+            var stage = new DelegatedPipelineStageDefinition<TInput, TOutput>(
+                operatorName,
+                (inputSerializer, serializerRegistry) =>
+                {
+                    var outputSerializer = mergeOptions.OutputSerializer ?? (inputSerializer as IBsonSerializer<TOutput>) ?? serializerRegistry.GetSerializer<TOutput>();
+
+                    var outputCollectionNamespace = outputCollection.CollectionNamespace;
+                    var outputDatabaseNamespace = outputCollectionNamespace.DatabaseNamespace;
+                    var renderedInto = new BsonDocument
+                    {
+                        { "db", outputDatabaseNamespace.DatabaseName },
+                        { "coll", outputCollectionNamespace.CollectionName }
+                    };
+
+                    BsonValue renderedOn = null;
+                    if (mergeOptions.OnFieldNames != null)
+                    {
+                        if (mergeOptions.OnFieldNames.Count == 1)
+                        {
+                            renderedOn = mergeOptions.OnFieldNames.Single();
+                        }
+                        else
+                        {
+                            renderedOn = new BsonArray(mergeOptions.OnFieldNames.Select(n => BsonString.Create(n)));
+                        }
+                    }
+
+                    BsonValue renderedWhenMatched = null;
+                    if (mergeOptions.WhenMatched.HasValue)
+                    {
+                        var whenMatched = mergeOptions.WhenMatched.Value;
+                        if (whenMatched == MergeStageWhenMatched.Pipeline)
+                        {
+                            var renderedPipeline = mergeOptions.WhenMatchedPipeline.Render(outputSerializer, serializerRegistry);
+                            renderedWhenMatched = new BsonArray(renderedPipeline.Documents);
+                        }
+                        else
+                        {
+                            renderedWhenMatched = MongoUtils.ToCamelCase(whenMatched.ToString());
+                        }
+                    }
+
+                    BsonString renderedWhenNotMatched = null;
+                    if (mergeOptions.WhenNotMatched.HasValue)
+                    {
+                        var whenNotMatched = mergeOptions.WhenNotMatched;
+                        renderedWhenNotMatched = MongoUtils.ToCamelCase(whenNotMatched.ToString());
+                    }
+
+                    var renderedMerge = new BsonDocument
+                    {
+                        { "into", renderedInto },
+                        { "on", renderedOn, renderedOn != null },
+                        { "let", mergeOptions.LetVariables, mergeOptions.LetVariables != null },
+                        { "whenMatched", renderedWhenMatched, renderedWhenMatched != null },
+                        { "whenNotMatched", renderedWhenNotMatched, renderedWhenNotMatched != null }
+                    };
+
+                    var renderedStage = new BsonDocument(operatorName, renderedMerge);
+
+                    return new RenderedPipelineStageDefinition<TOutput>(operatorName, renderedStage, outputSerializer);
+                });
+
+            return stage;
+        }
+
+        /// <summary>
         /// Create a $match stage that select documents of a sub type.
         /// </summary>
         /// <typeparam name="TInput">The type of the input documents.</typeparam>
@@ -1074,6 +1177,47 @@ namespace MongoDB.Driver
         {
             Ensure.IsNotNull(newRoot, nameof(newRoot));
             return ReplaceRoot(new ExpressionAggregateExpressionDefinition<TInput, TOutput>(newRoot, translationOptions));
+        }
+
+        /// <summary>
+        /// Creates a $replaceWith stage.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="newRoot">The new root.</param>
+        /// <returns>The stage.</returns>
+        public static PipelineStageDefinition<TInput, TOutput> ReplaceWith<TInput, TOutput>(
+            AggregateExpressionDefinition<TInput, TOutput> newRoot)
+        {
+            Ensure.IsNotNull(newRoot, nameof(newRoot));
+
+            const string operatorName = "$replaceWith";
+            var stage = new DelegatedPipelineStageDefinition<TInput, TOutput>(
+                operatorName,
+                (s, sr) =>
+                {
+                    var document = new BsonDocument(operatorName, newRoot.Render(s, sr));
+                    var outputSerializer = sr.GetSerializer<TOutput>();
+                    return new RenderedPipelineStageDefinition<TOutput>(operatorName, document, outputSerializer);
+                });
+
+            return stage;
+        }
+
+        /// <summary>
+        /// Creates a $replaceWith stage.
+        /// </summary>
+        /// <typeparam name="TInput">The type of the input documents.</typeparam>
+        /// <typeparam name="TOutput">The type of the output documents.</typeparam>
+        /// <param name="newRoot">The new root.</param>
+        /// <param name="translationOptions">The translation options.</param>
+        /// <returns>The stage.</returns>
+        public static PipelineStageDefinition<TInput, TOutput> ReplaceWith<TInput, TOutput>(
+            Expression<Func<TInput, TOutput>> newRoot,
+            ExpressionTranslationOptions translationOptions = null)
+        {
+            Ensure.IsNotNull(newRoot, nameof(newRoot));
+            return ReplaceWith(new ExpressionAggregateExpressionDefinition<TInput, TOutput>(newRoot, translationOptions));
         }
 
         /// <summary>

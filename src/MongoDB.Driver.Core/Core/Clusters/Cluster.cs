@@ -18,11 +18,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MongoDB.Bson;
-using MongoDB.Driver.Core.Async;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Configuration;
@@ -40,9 +37,9 @@ namespace MongoDB.Driver.Core.Clusters
         #region static
         // static fields
         private static readonly TimeSpan __minHeartbeatInterval = TimeSpan.FromMilliseconds(500);
-        private static readonly Range<int> __supportedWireVersionRange = new Range<int>(2, 6);
         private static readonly SemanticVersion __minSupportedServerVersion = new SemanticVersion(2, 6, 0);
         private static readonly IServerSelector __randomServerSelector = new RandomServerSelector();
+        private static readonly Range<int> __supportedWireVersionRange = new Range<int>(2, 8);
 
         // static properties
         /// <summary>
@@ -308,7 +305,9 @@ namespace MongoDB.Driver.Core.Clusters
             }
 
             OnDescriptionChanged(oldClusterDescription, newClusterDescription);
-            oldDescriptionChangedTaskCompletionSource.TrySetResult(true);
+
+            // TODO: use RunContinuationsAsynchronously instead once we require a new enough .NET Framework
+            Task.Run(() => oldDescriptionChangedTaskCompletionSource.TrySetResult(true));
         }
 
         private string BuildTimeoutExceptionMessage(TimeSpan timeout, IServerSelector selector, ClusterDescription clusterDescription)

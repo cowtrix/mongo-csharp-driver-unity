@@ -27,6 +27,7 @@ using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
+using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.WireProtocol.Messages;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
 
@@ -106,9 +107,13 @@ namespace MongoDB.Driver.Core.WireProtocol
                     return default(TCommandResult);
                 }
             }
-            catch (MongoException exception) when (ShouldAddTransientTransactionError(exception))
+            catch (Exception exception)
             {
-                exception.AddErrorLabel("TransientTransactionError");
+                if (exception is MongoException mongoException && ShouldAddTransientTransactionError(mongoException))
+                {
+                    mongoException.AddErrorLabel("TransientTransactionError");
+                }
+                TransactionHelper.UnpinServerIfNeededOnCommandException(_session, exception);
                 throw;
             }
         }
@@ -139,9 +144,13 @@ namespace MongoDB.Driver.Core.WireProtocol
                     return default(TCommandResult);
                 }
             }
-            catch (MongoException exception) when (ShouldAddTransientTransactionError(exception))
+            catch (Exception exception)
             {
-                exception.AddErrorLabel("TransientTransactionError");
+                if (exception is MongoException mongoException && ShouldAddTransientTransactionError(mongoException))
+                {
+                    mongoException.AddErrorLabel("TransientTransactionError");
+                }
+                TransactionHelper.UnpinServerIfNeededOnCommandException(_session, exception);
                 throw;
             }
         }
@@ -182,7 +191,9 @@ namespace MongoDB.Driver.Core.WireProtocol
             var dbElement = new BsonElement("$db", _databaseNamespace.DatabaseName);
             extraElements.Add(dbElement);
 
-            if (_readPreference != null && _readPreference != ReadPreference.Primary)
+            if (connectionDescription.IsMasterResult.ServerType != ServerType.Standalone
+                && _readPreference != null
+                && _readPreference != ReadPreference.Primary)
             {
                 var readPreferenceDocument = QueryHelper.CreateReadPreferenceDocument(_readPreference);
                 var readPreferenceElement = new BsonElement("$readPreference", readPreferenceDocument);
@@ -222,6 +233,16 @@ namespace MongoDB.Driver.Core.WireProtocol
             var elementAppendingSerializer = new ElementAppendingSerializer<BsonDocument>(BsonDocumentSerializer.Instance, extraElements, writerSettingsConfigurator);
             return new Type0CommandMessageSection<BsonDocument>(_command, elementAppendingSerializer);
         }
+
+        private bool IsRetryableWriteExceptionAndDeploymentDoesNotSupportRetryableWrites(MongoCommandException exception)
+        {
+            return
+                exception.Result.TryGetValue("code", out var errorCode) &&
+                errorCode.ToInt32() == 20 &&
+                exception.Result.TryGetValue("errmsg", out var errmsg) &&
+                errmsg.AsString.StartsWith("Transaction numbers");
+        }
+
 
         private void MessageWasProbablySent(CommandRequestMessage message)
         {
@@ -266,7 +287,15 @@ namespace MongoDB.Driver.Core.WireProtocol
                     _session.AdvanceOperationTime(operationTime.AsBsonTimestamp);
                 }
 
-                if (!rawDocument.GetValue("ok", false).ToBoolean())
+                if (rawDocument.GetValue("ok", false).ToBoolean())
+                {
+                    if (rawDocument.TryGetValue("recoveryToken", out var rawRecoveryToken))
+                    {
+                        var recoveryToken = ((RawBsonDocument)rawRecoveryToken).Materialize(binaryReaderSettings);
+                        _session.CurrentTransaction.RecoveryToken = recoveryToken;
+                    }
+                }
+                else
                 {
                     var materializedDocument = rawDocument.Materialize(binaryReaderSettings);
 
@@ -300,7 +329,17 @@ namespace MongoDB.Driver.Core.WireProtocol
                         message = string.Format("Command {0} failed.", commandName);
                     }
 
-                    throw new MongoCommandException(connectionId, message, _command, materializedDocument);
+                    var exception = new MongoCommandException(connectionId, message, _command, materializedDocument);
+
+                    // https://jira.mongodb.org/browse/CSHARP-2678
+                    if (IsRetryableWriteExceptionAndDeploymentDoesNotSupportRetryableWrites(exception))
+                    {
+                        throw WrapNotSupportedRetryableWriteException(exception);
+                    }
+                    else
+                    {
+                        throw exception;
+                    }
                 }
 
                 if (rawDocument.Contains("writeConcernError"))
@@ -334,6 +373,19 @@ namespace MongoDB.Driver.Core.WireProtocol
             }
 
             return false;
+        }
+
+        private MongoException WrapNotSupportedRetryableWriteException(MongoCommandException exception)
+        {
+            const string friendlyErrorMessage =
+                "This MongoDB deployment does not support retryable writes. " +
+                "Please add retryWrites=false to your connection string.";
+            return new MongoCommandException(
+                exception.ConnectionId,
+                friendlyErrorMessage,
+                exception.Command,
+                exception.Result,
+                innerException: exception);
         }
     }
 }

@@ -25,6 +25,7 @@ using DnsClient;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Clusters;
+using MongoDB.Driver.Core.Compression;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Shared;
 using UnityEngine.Networking;
@@ -61,6 +62,7 @@ namespace MongoDB.Driver.Core.Configuration
         private readonly NameValueCollection _allOptions;
         private readonly NameValueCollection _unknownOptions;
         private readonly Dictionary<string, string> _authMechanismProperties;
+        private readonly CompressorsOptions _compressorsOptions;
 
         // these are all readonly, but since they are not assigned 
         // from the ctor, they cannot be marked as such.
@@ -75,6 +77,7 @@ namespace MongoDB.Driver.Core.Configuration
         private TimeSpan? _heartbeatTimeout;
         private IReadOnlyList<EndPoint> _hosts;
         private bool? _ipv6;
+        private bool _isResolved;
         private bool? _journal;
         private TimeSpan? _localThreshold;
         private TimeSpan? _maxIdleTime;
@@ -87,12 +90,13 @@ namespace MongoDB.Driver.Core.Configuration
         private ReadPreferenceMode? _readPreference;
         private IReadOnlyList<TagSet> _readPreferenceTags;
         private string _replicaSet;
+        private bool? _retryReads;
         private bool? _retryWrites;
         private ConnectionStringScheme _scheme;
         private TimeSpan? _serverSelectionTimeout;
         private TimeSpan? _socketTimeout;
-        private bool? _ssl;
-        private bool? _sslVerifyCertificate;
+        private bool? _tls;
+        private bool? _tlsInsecure;
         private string _username;
         private GuidRepresentation? _uuidRepresentation;
         private double? _waitQueueMultiple;
@@ -113,7 +117,26 @@ namespace MongoDB.Driver.Core.Configuration
             _allOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             _unknownOptions = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
             _authMechanismProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _compressorsOptions = new CompressorsOptions();
             Parse();
+
+            _isResolved = _scheme != ConnectionStringScheme.MongoDBPlusSrv;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConnectionString" /> class.
+        /// </summary>
+        /// <param name="connectionString">The connection string.</param>
+        /// <param name="isResolved">Whether the connection string is resolved.</param>
+        internal ConnectionString(string connectionString, bool isResolved)
+            : this(connectionString)
+        {
+            if (!isResolved && _scheme != ConnectionStringScheme.MongoDBPlusSrv)
+            {
+                throw new ArgumentException("Only connection strings with scheme MongoDBPlusSrv can be unresolved.", nameof(isResolved));
+            }
+
+            _isResolved = isResolved;
         }
 
         // public properties
@@ -163,6 +186,14 @@ namespace MongoDB.Driver.Core.Configuration
         public string AuthSource
         {
             get { return _authSource; }
+        }
+
+        /// <summary>
+        /// Gets the requested compressors.
+        /// </summary>
+        public IReadOnlyList<CompressorConfiguration> Compressors
+        {
+            get { return _compressorsOptions.Compressors; }
         }
 
         /// <summary>
@@ -227,6 +258,14 @@ namespace MongoDB.Driver.Core.Configuration
         public bool? Ipv6
         {
             get { return _ipv6; }
+        }
+
+        /// <summary>
+        /// Gets whether the connection string has been resolved. Always true when scheme is MongoDB.
+        /// </summary>
+        public bool IsResolved
+        {
+            get { return _isResolved; }
         }
 
         /// <summary>
@@ -329,6 +368,15 @@ namespace MongoDB.Driver.Core.Configuration
         }
 
         /// <summary>
+        /// Gets a value indicating whether or not to retry reads.
+        /// </summary>
+        public bool? RetryReads
+        {
+            get { return _retryReads; }
+        }
+
+
+        /// <summary>
         /// Gets a value indicating whether or not to retry writes.
         /// </summary>
         public bool? RetryWrites
@@ -336,8 +384,8 @@ namespace MongoDB.Driver.Core.Configuration
             get { return _retryWrites; }
         }
 
-       /// <summary>
-        /// Gets the scheme.
+        /// <summary>
+        /// Gets the connection string scheme.
         /// </summary>
         public ConnectionStringScheme Scheme
         {
@@ -363,18 +411,27 @@ namespace MongoDB.Driver.Core.Configuration
         /// <summary>
         /// Gets whether to use SSL.
         /// </summary>
+        [Obsolete("Use Tls instead.")]
         public bool? Ssl
         {
-            get { return _ssl; }
+            get { return _tls; }
         }
 
         /// <summary>
         /// Gets whether to verify SSL certificates.
         /// </summary>
-        public bool? SslVerifyCertificate
-        {
-            get { return _sslVerifyCertificate; }
-        }
+        [Obsolete("Use TlsInsecure instead.")]
+        public bool? SslVerifyCertificate => !_tlsInsecure;
+
+        /// <summary>
+        /// Gets whether to use TLS.
+        /// </summary>
+        public bool? Tls => _tls;
+
+        /// <summary>
+        /// Gets whether to relax TLS constraints as much as possible.
+        /// </summary>
+        public bool? TlsInsecure => _tlsInsecure;
 
         /// <summary>
         /// Gets the username.
@@ -450,7 +507,18 @@ namespace MongoDB.Driver.Core.Configuration
         /// <returns>A resolved ConnectionString.</returns>
         public ConnectionString Resolve()
         {
-            if (_scheme == ConnectionStringScheme.MongoDB)
+            return Resolve(resolveHosts: true);
+        }
+
+        /// <summary>
+        /// Resolves a connection string. If the connection string indicates more information is available
+        /// in the DNS system, it will acquire that information as well.
+        /// </summary>
+        /// <param name="resolveHosts">Whether to resolve hosts.</param>
+        /// <returns>A resolved ConnectionString.</returns>
+        public ConnectionString Resolve(bool resolveHosts)
+        {
+            if (_isResolved)
             {
                 return this;
             }
@@ -458,16 +526,28 @@ namespace MongoDB.Driver.Core.Configuration
             var host = GetHostNameForDns();
 
             var client = new LookupClient();
-            var response = client.Query(srvPrefix + host, QueryType.SRV, QueryClass.IN);
-            var hosts = GetHostsFromResponse(response);
-            ValidateResolvedHosts(host, hosts);
 
-            response = client.Query(host, QueryType.TXT, QueryClass.IN);
-            var options = GetOptionsFromResponse(response);
+            ConnectionStringScheme resolvedScheme;
+            List<string> hosts;
+            if (resolveHosts)
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDB;
+                var srvResponse = client.Query(srvPrefix + host, QueryType.SRV, QueryClass.IN);
+                hosts = GetHostsFromResponse(srvResponse);
+                ValidateResolvedHosts(host, hosts);
+            }
+            else
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDBPlusSrv;
+                hosts = new List<string> { host };
+            }
+
+            var txtResponse = client.Query(host, QueryType.TXT, QueryClass.IN);
+            var options = GetOptionsFromResponse(txtResponse);
 
             var resolvedOptions = GetResolvedOptions(options);
 
-            return BuildResolvedConnectionString(hosts, resolvedOptions);
+            return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
         }
 
         /// <summary>
@@ -476,26 +556,50 @@ namespace MongoDB.Driver.Core.Configuration
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A resolved ConnectionString.</returns>
-        public async Task<ConnectionString> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ConnectionString> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (_scheme == ConnectionStringScheme.MongoDB)
+            return ResolveAsync(resolveHosts: true, cancellationToken);
+        }
+
+        /// <summary>
+        /// Resolves a connection string. If the connection string indicates more information is available
+        /// in the DNS system, it will acquire that information as well.
+        /// </summary>
+        /// <param name="resolveHosts">Whether to resolve hosts.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A resolved ConnectionString.</returns>
+        public async Task<ConnectionString> ResolveAsync(bool resolveHosts, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (_isResolved)
             {
                 return this;
             }
 
-            string host = GetHostNameForDns();
+            var host = GetHostNameForDns();
 
             var client = new LookupClient();
-            var response = await client.QueryAsync(srvPrefix + host, QueryType.SRV, QueryClass.IN, cancellationToken).ConfigureAwait(false);
-            var hosts = GetHostsFromResponse(response);
-            ValidateResolvedHosts(host, hosts);
 
-            response = await client.QueryAsync(host, QueryType.TXT, QueryClass.IN, cancellationToken).ConfigureAwait(false);
-            var options = GetOptionsFromResponse(response);
+            ConnectionStringScheme resolvedScheme;
+            List<string> hosts;
+            if (resolveHosts)
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDB;
+                var srvResponse = await client.QueryAsync(srvPrefix + host, QueryType.SRV, QueryClass.IN).ConfigureAwait(false);
+                hosts = GetHostsFromResponse(srvResponse);
+                ValidateResolvedHosts(host, hosts);
+            }
+            else
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDBPlusSrv;
+                hosts = new List<string> { host };
+            }
+
+            var txtResponse = await client.QueryAsync(host, QueryType.TXT, QueryClass.IN).ConfigureAwait(false);
+            var options = GetOptionsFromResponse(txtResponse);
 
             var resolvedOptions = GetResolvedOptions(options);
 
-            return BuildResolvedConnectionString(hosts, resolvedOptions);
+            return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
         }
 
         /// <inheritdoc/>
@@ -505,9 +609,9 @@ namespace MongoDB.Driver.Core.Configuration
         }
 
         // private methods
-        private ConnectionString BuildResolvedConnectionString(List<string> resolvedHosts, NameValueCollection resolvedOptions)
+        private ConnectionString BuildResolvedConnectionString(ConnectionStringScheme resolvedScheme, List<string> resolvedHosts, NameValueCollection resolvedOptions)
         {
-            var connectionString = "mongodb://";
+            var connectionString = resolvedScheme == ConnectionStringScheme.MongoDBPlusSrv ? "mongodb+srv://" : "mongodb://";
             if (_username != null)
             {
                 connectionString += Uri.EscapeDataString(_username);
@@ -526,9 +630,9 @@ namespace MongoDB.Driver.Core.Configuration
             }
 
             // remove any option from the resolved options that was specified locally
-            foreach(var key in _allOptions.AllKeys)
+            foreach (var key in _allOptions.AllKeys)
             {
-                if(resolvedOptions.Get(key) != null)
+                if (resolvedOptions.Get(key) != null)
                 {
                     resolvedOptions.Remove(key);
                 }
@@ -549,7 +653,7 @@ namespace MongoDB.Driver.Core.Configuration
                 connectionString += "?" + string.Join("&", mergedOptions);
             }
 
-            return new ConnectionString(connectionString);
+            return new ConnectionString(connectionString, isResolved: true);
         }
 
         private void ExtractScheme(Match match)
@@ -560,8 +664,11 @@ namespace MongoDB.Driver.Core.Configuration
                 if (schemeGroup.Value == "mongodb+srv")
                 {
                     _scheme = ConnectionStringScheme.MongoDBPlusSrv;
-                    _ssl = true;
-                    _allOptions.Add("ssl", "true");
+                    if (!_tls.HasValue)
+                    {
+                        _tls = true;
+                        _allOptions.Add("tls", "true");
+                    }
                 }
             }
         }
@@ -662,8 +769,19 @@ namespace MongoDB.Driver.Core.Configuration
             const string optionsPattern = @"(\?" + optionPattern + @"((&|;)" + optionPattern + ")*)?";
             const string pattern =
                 @"^(?<scheme>mongodb|mongodb\+srv)://" +
-                @"((?<username>[^:@]+)(:(?<password>[^:@]*))?@)?" +
+                @"((?<username>[^:@/]+)(:(?<password>[^:@/]*))?@)?" +
                 serversPattern + @"(/" + databasePattern + ")?/?" + optionsPattern + "$";
+
+            if (_originalConnectionString.Contains("%"))
+            {
+                var invalidPercentPattern = @"%$|%.$|%[^0-9a-fA-F]|%[0-9a-fA-F][^0-9a-fA-F]";
+                if (Regex.IsMatch(_originalConnectionString, invalidPercentPattern))
+                {
+                    var message = string.Format("The connection string '{0}' contains an invalid '%' escape sequence.",
+                        _originalConnectionString);
+                    throw new MongoConfigurationException(message);
+                }
+            }
 
             var match = Regex.Match(_originalConnectionString, pattern);
             if (!match.Success)
@@ -672,11 +790,16 @@ namespace MongoDB.Driver.Core.Configuration
                 throw new MongoConfigurationException(message);
             }
 
-            ExtractScheme(match);
             ExtractUsernameAndPassword(match);
             ExtractDatabaseName(match);
             ExtractOptions(match);
+            ExtractScheme(match);
             ExtractHosts(match);
+
+            if (_journal.HasValue && _journal.Value && _w != null && _w.Equals(0))
+            {
+                throw new MongoConfigurationException("This is an invalid w and journal pair.");
+            }
         }
 
         private void ParseOption(string name, string value)
@@ -702,6 +825,9 @@ namespace MongoDB.Driver.Core.Configuration
                     break;
                 case "authsource":
                     _authSource = value;
+                    break;
+                case "compressors":
+                    _compressorsOptions.SaveCompressors(value.Split(','));
                     break;
                 case "connect":
                     _connect = ParseClusterConnectionMode(name, value);
@@ -775,6 +901,9 @@ namespace MongoDB.Driver.Core.Configuration
                 case "replicaset":
                     _replicaSet = value;
                     break;
+                case "retryreads":
+                    _retryReads = ParseBoolean(name, value);
+                    break;
                 case "retrywrites":
                     _retryWrites = ParseBoolean(name, value);
                     break;
@@ -824,11 +953,22 @@ namespace MongoDB.Driver.Core.Configuration
                 case "sockettimeoutms":
                     _socketTimeout = ParseTimeSpan(name, value);
                     break;
-                case "ssl":
-                    _ssl = ParseBoolean(name, value);
+                case "ssl": // Obsolete
+                case "tls":
+                    var tlsValue = ParseBoolean(name, value);
+                    if (_tls.HasValue && _tls.Value != tlsValue)
+                    {
+                        throw new MongoConfigurationException("tls has already been configured with a different value.");
+                    }
+                    _tls = tlsValue;
                     break;
-                case "sslverifycertificate":
-                    _sslVerifyCertificate = ParseBoolean(name, value);
+                case "sslverifycertificate": // Obsolete
+                    var sslVerifyCertificateValue = ParseBoolean(name, value);
+                    _tlsInsecure = EnsureTlsInsecureIsValid(!sslVerifyCertificateValue);
+                    break;
+                case "tlsinsecure":
+                    var tlsInsecureValue = ParseBoolean(name, value);
+                    _tlsInsecure = EnsureTlsInsecureIsValid(tlsInsecureValue);
                     break;
                 case "guids":
                 case "uuidrepresentation":
@@ -854,6 +994,9 @@ namespace MongoDB.Driver.Core.Configuration
                 case "waitqueuetimeout":
                 case "waitqueuetimeoutms":
                     _waitQueueTimeout = ParseTimeSpan(name, value);
+                    break;
+                case "zlibcompressionlevel":
+                    _compressorsOptions.SaveCompressionOption("Level", ParseInt32(name, value), CompressorType.Zlib);
                     break;
                 default:
                     _unknownOptions.Add(name, value);
@@ -1007,8 +1150,18 @@ namespace MongoDB.Driver.Core.Configuration
             }
         }
 
+        private bool EnsureTlsInsecureIsValid(bool value)
+        {
+            if (_tlsInsecure.HasValue && _tlsInsecure.Value != value)
+            {
+                throw new MongoConfigurationException("tlsInsecure has already been configured with a different value.");
+            }
+
+            return value;
+        }
+
         private List<string> GetHostsFromResponse(IDnsQueryResponse response)
-        {         
+        {
             var hosts = new List<string>();
             foreach (var srvRecord in response.Answers.SrvRecords())
             {
@@ -1027,7 +1180,7 @@ namespace MongoDB.Driver.Core.Configuration
         {
             var txtRecords = response.Answers
                 .TxtRecords().ToList();
-            
+
             if (txtRecords.Count > 1)
             {
                 throw new MongoConfigurationException("Only 1 TXT record is allowed when using the SRV protocol.");
@@ -1051,6 +1204,31 @@ namespace MongoDB.Driver.Core.Configuration
 
         private void ValidateResolvedHosts(string original, List<string> resolved)
         {
+            if (resolved.Count == 0)
+            {
+                throw new MongoConfigurationException($"No hosts were found in the SRV record for {original}.");
+            }
+
+            // for each resolved host, make sure that it ends with domain of the parent.
+            foreach (var resolvedHost in resolved)
+            {
+                EndPoint endPoint;
+                if (!EndPointHelper.TryParse(resolvedHost, 0, out endPoint) || !(endPoint is DnsEndPoint))
+                {
+                    throw new MongoConfigurationException($"Unable to parse {resolvedHost} as a hostname.");
+                }
+                var dnsEndPoint = (DnsEndPoint)endPoint;
+
+                var host = ((DnsEndPoint)endPoint).Host;
+                if (!HasValidParentDomain(original, dnsEndPoint))
+                {
+                    throw new MongoConfigurationException($"Hosts in the SRV record must have the same parent domain as the seed host.");
+                }
+            }
+        }
+
+        internal static bool HasValidParentDomain(string original, DnsEndPoint resolvedEndPoint)
+        {
             // Helper functions...
             Func<string, string[]> getParentParts = x => x.Split('.').Skip(1).ToArray();
 
@@ -1062,8 +1240,8 @@ namespace MongoDB.Driver.Core.Configuration
                     return false;
                 }
 
-                // loop from back to front making sure that all of b is at the back of a, in order.
-                for (int ai = a.Length - 1, bi = b.Length - 1; bi >= 0; ai--, bi--)
+            // loop from back to front making sure that all of b is at the back of a, in order.
+            for (int ai = a.Length - 1, bi = b.Length - 1; bi >= 0; ai--, bi--)
                 {
                     if (a[ai] != b[bi])
                     {
@@ -1074,27 +1252,10 @@ namespace MongoDB.Driver.Core.Configuration
                 return true;
             };
 
-            if (resolved.Count == 0)
-            {
-                throw new MongoConfigurationException($"No hosts were found in the SRV record for {original}.");
-            }
-
-            // for each resolved host, make sure that it ends with domain of the parent.
+            // make sure that the resolve host ends with domain of the parent.
             var originalParentParts = getParentParts(original);
-            foreach(var resolvedHost in resolved)
-            {
-                EndPoint endPoint;
-                if (!EndPointHelper.TryParse(resolvedHost, 0, out endPoint) || !(endPoint is DnsEndPoint))
-                {
-                    throw new MongoConfigurationException($"Unable to parse {resolvedHost} as a hostname.");
-                }
-
-                var host = ((DnsEndPoint)endPoint).Host;
-                if (!endsWith(getParentParts(host), originalParentParts))
-                {
-                    throw new MongoConfigurationException($"Hosts in the SRV record must have the same parent domain as the seed host.");
-                }
-            }
+            var host = resolvedEndPoint.Host;
+            return endsWith(getParentParts(host), originalParentParts);
         }
 
         private void ValidateResolvedOptions(IEnumerable<string> optionNames)
@@ -1103,6 +1264,78 @@ namespace MongoDB.Driver.Core.Configuration
                 && !string.Equals(x, "replicaSet", StringComparison.OrdinalIgnoreCase)))
             {
                 throw new MongoConfigurationException($"Only 'authSource' and 'replicaSet' are allowed in a TXT record.");
+            }
+        }
+
+        // nested types
+        private class CompressorsOptions
+        {
+            private readonly List<CompressorConfiguration> _compressors;
+            private readonly Dictionary<CompressorType, Dictionary<string, object>> _compressorsOptions;
+            private bool _hasBeenBuilt;
+
+            public CompressorsOptions()
+            {
+                _compressorsOptions = new Dictionary<CompressorType, Dictionary<string, object>>();
+                _compressors = new List<CompressorConfiguration>();
+            }
+
+            public IReadOnlyList<CompressorConfiguration> Compressors
+            {
+                get
+                {
+                    BuildIfNotBuilt();
+                    return _compressors;
+                }
+            }
+
+            public void SaveCompressionOption<TOptionType>(string option, TOptionType value, CompressorType compressorType)
+            {
+                if (!_compressorsOptions.TryGetValue(compressorType, out var properties))
+                {
+                    properties = new Dictionary<string, object>();
+                    _compressorsOptions.Add(compressorType, properties);
+                }
+
+                properties.Add(option, value);
+            }
+
+            public void SaveCompressors(string[] compressorNames)
+            {
+                foreach (var compressor in compressorNames)
+                {
+                    // NOTE: the 'noop' is also expected by the server
+                    if (!Enum.TryParse(compressor, true, out CompressorType compressorType) || !CompressorSource.IsCompressorSupported(compressorType))
+                    {
+                        // Keys that aren't supported by a driver MUST be ignored.
+                        continue;
+                    }
+                    _compressors.Add(new CompressorConfiguration(compressorType));
+                }
+            }
+
+            // private methods
+            private void BuildIfNotBuilt()
+            {
+                if (!_hasBeenBuilt)
+                {
+                    MapCompressorsAndProperties();
+                    _hasBeenBuilt = true;
+                }
+            }
+
+            private void MapCompressorsAndProperties()
+            {
+                foreach (var compressor in _compressors)
+                {
+                    if (_compressorsOptions.TryGetValue(compressor.Type, out var options))
+                    {
+                        foreach (var option in options)
+                        {
+                            compressor.Properties.Add(option);
+                        }
+                    }
+                }
             }
         }
     }

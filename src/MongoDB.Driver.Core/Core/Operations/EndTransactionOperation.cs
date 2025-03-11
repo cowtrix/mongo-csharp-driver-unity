@@ -31,16 +31,28 @@ namespace MongoDB.Driver.Core.Operations
     {
         // private fields
         private MessageEncoderSettings _messageEncoderSettings;
+        private readonly BsonDocument _recoveryToken;
         private readonly WriteConcern _writeConcern;
 
         // protected constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="EndTransactionOperation"/> class.
         /// </summary>
+        /// <param name="recoveryToken">The recovery token.</param>
+        /// <param name="writeConcern">The write concern.</param>
+        protected EndTransactionOperation(BsonDocument recoveryToken, WriteConcern writeConcern)
+        {
+            _recoveryToken = recoveryToken;
+            _writeConcern = Ensure.IsNotNull(writeConcern, nameof(writeConcern));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EndTransactionOperation"/> class.
+        /// </summary>
         /// <param name="writeConcern">The write concern.</param>
         protected EndTransactionOperation(WriteConcern writeConcern)
+            : this(recoveryToken: null, writeConcern)
         {
-            _writeConcern = Ensure.IsNotNull(writeConcern, nameof(writeConcern));
         }
 
         // public properties
@@ -102,20 +114,29 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        // private methods
-        private BsonDocument CreateCommand()
+        // protected methods
+        /// <summary>
+        /// Creates the command for the operation.
+        /// </summary>
+        /// <returns>The command.</returns>
+        protected virtual BsonDocument CreateCommand()
         {
             return new BsonDocument
             {
                 { CommandName, 1 },
-                { "writeConcern", () => _writeConcern.ToBsonDocument(), !_writeConcern.IsServerDefault }
+                { "writeConcern", () => _writeConcern.ToBsonDocument(), !_writeConcern.IsServerDefault },
+                { "recoveryToken", _recoveryToken, _recoveryToken != null }
             };
         }
 
+        // private methods
         private IReadOperation<BsonDocument> CreateOperation()
         {
             var command = CreateCommand();
-            return new ReadCommandOperation<BsonDocument>(DatabaseNamespace.Admin, command, BsonDocumentSerializer.Instance, _messageEncoderSettings);
+            return new ReadCommandOperation<BsonDocument>(DatabaseNamespace.Admin, command, BsonDocumentSerializer.Instance, _messageEncoderSettings)
+            {
+                RetryRequested = false
+            };
         }
     }
 
@@ -125,6 +146,16 @@ namespace MongoDB.Driver.Core.Operations
     public sealed class AbortTransactionOperation : EndTransactionOperation
     {
         // public constructors
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AbortTransactionOperation"/> class.
+        /// </summary>
+        /// <param name="recoveryToken">The recovery token.</param>
+        /// <param name="writeConcern">The write concern.</param>
+        public AbortTransactionOperation(BsonDocument recoveryToken, WriteConcern writeConcern)
+            : base(recoveryToken, writeConcern)
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AbortTransactionOperation"/> class.
         /// </summary>
@@ -144,6 +175,9 @@ namespace MongoDB.Driver.Core.Operations
     /// </summary>
     public sealed class CommitTransactionOperation : EndTransactionOperation
     {
+        // private fields
+        private TimeSpan? _maxCommitTime;
+
         // public constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="AbortTransactionOperation"/> class.
@@ -152,6 +186,25 @@ namespace MongoDB.Driver.Core.Operations
         public CommitTransactionOperation(WriteConcern writeConcern)
             : base(writeConcern)
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AbortTransactionOperation"/> class.
+        /// </summary>
+        /// <param name="recoveryToken">The recovery token.</param>
+        /// <param name="writeConcern">The write concern.</param>
+        public CommitTransactionOperation(BsonDocument recoveryToken, WriteConcern writeConcern)
+            : base(recoveryToken, writeConcern)
+        {
+        }
+
+        // public properties
+        /// <summary>Gets the maximum commit time.</summary>
+        /// <value>The maximum commit time.</value>
+        public TimeSpan? MaxCommitTime
+        {
+            get => _maxCommitTime;
+            set => _maxCommitTime = Ensure.IsNullOrGreaterThanZero(value, nameof(value));
         }
 
         // protected properties
@@ -187,6 +240,18 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
+        // protected methods
+        /// <inheritdoc />
+        protected override BsonDocument CreateCommand()
+        {
+            var command = base.CreateCommand();
+            if (_maxCommitTime.HasValue)
+            {
+                command.Add("maxTimeMS", (long)_maxCommitTime.Value.TotalMilliseconds);
+            }
+            return command;
+        }
+
         // private methods
         private void ReplaceTransientTransactionErrorWithUnknownTransactionCommitResult(MongoException exception)
         {
@@ -201,7 +266,9 @@ namespace MongoDB.Driver.Core.Operations
                 return true;
             }
 
-            if (exception is MongoNotPrimaryException || exception is MongoNodeIsRecoveringException)
+            if (exception is MongoNotPrimaryException ||
+                exception is MongoNodeIsRecoveringException ||
+                exception is MongoExecutionTimeoutException) // MaxTimeMSExpired
             {
                 return true;
             }

@@ -35,7 +35,7 @@ namespace MongoDB.Driver.Core.Operations
     /// Represents an aggregate operation.
     /// </summary>
     /// <typeparam name="TResult">The type of the result values.</typeparam>
-    public class AggregateOperation<TResult> : IReadOperation<IAsyncCursor<TResult>>
+    public class AggregateOperation<TResult> : IReadOperation<IAsyncCursor<TResult>>, IExecutableInRetryableReadContext<IAsyncCursor<TResult>>
     {
         // fields
         private bool? _allowDiskUse;
@@ -51,6 +51,7 @@ namespace MongoDB.Driver.Core.Operations
         private readonly IReadOnlyList<BsonDocument> _pipeline;
         private ReadConcern _readConcern = ReadConcern.Default;
         private readonly IBsonSerializer<TResult> _resultSerializer;
+        private bool _retryRequested;
         private bool? _useCursor;
 
         // constructors
@@ -237,6 +238,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to retry.
+        /// </summary>
+        /// <value>Whether to retry.</value>
+        public bool RetryRequested
+        {
+            get => _retryRequested;
+            set => _retryRequested = value;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the server should use a cursor to return the results.
         /// </summary>
         /// <value>
@@ -253,16 +264,24 @@ namespace MongoDB.Driver.Core.Operations
         public IAsyncCursor<TResult> Execute(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
+
+            using (var context = RetryableReadContext.Create(binding, _retryRequested, cancellationToken))
+            {
+                return Execute(context, cancellationToken);
+            }
+        }
+
+        /// <inheritdoc/>
+        public IAsyncCursor<TResult> Execute(RetryableReadContext context, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
 
             using (EventContext.BeginOperation())
-            using (var channelSource = binding.GetReadChannelSource(cancellationToken))
-            using (var channel = channelSource.GetChannel(cancellationToken))
-            using (var channelBinding = new ChannelReadBinding(channelSource.Server, channel, binding.ReadPreference, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channel, channelBinding);
-                var result = operation.Execute(channelBinding, cancellationToken);
-                return CreateCursor(channelSource, channel, operation.Command, result);
+                var operation = CreateOperation(context);
+                var result = operation.Execute(context, cancellationToken);
+                return CreateCursor(context.ChannelSource, context.Channel, operation.Command, result);
             }
         }
 
@@ -270,16 +289,24 @@ namespace MongoDB.Driver.Core.Operations
         public async Task<IAsyncCursor<TResult>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
+
+            using (var context = await RetryableReadContext.CreateAsync(binding, _retryRequested, cancellationToken).ConfigureAwait(false))
+            {
+                return await ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<IAsyncCursor<TResult>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(context, nameof(context));
             EnsureIsReadOnlyPipeline();
 
             using (EventContext.BeginOperation())
-            using (var channelSource = await binding.GetReadChannelSourceAsync(cancellationToken).ConfigureAwait(false))
-            using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
-            using (var channelBinding = new ChannelReadBinding(channelSource.Server, channel, binding.ReadPreference, binding.Session.Fork()))
             {
-                var operation = CreateOperation(channel, channelBinding);
-                var result = await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false);
-                return CreateCursor(channelSource, channel, operation.Command, result);
+                var operation = CreateOperation(context);
+                var result = await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+                return CreateCursor(context.ChannelSource, context.Channel, operation.Command, result);
             }
         }
 
@@ -331,12 +358,15 @@ namespace MongoDB.Driver.Core.Operations
             return command;
         }
 
-        private ReadCommandOperation<AggregateResult> CreateOperation(IChannel channel, IBinding binding)
+        private ReadCommandOperation<AggregateResult> CreateOperation(RetryableReadContext context)
         {
             var databaseNamespace = _collectionNamespace == null ? _databaseNamespace : _collectionNamespace.DatabaseNamespace;
-            var command = CreateCommand(channel.ConnectionDescription, binding.Session);
+            var command = CreateCommand(context.Channel.ConnectionDescription, context.Binding.Session);
             var serializer = new AggregateResultDeserializer(_resultSerializer);
-            return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings);
+            return new ReadCommandOperation<AggregateResult>(databaseNamespace, command, serializer, MessageEncoderSettings)
+            {
+                RetryRequested = _retryRequested // might be overridden by retryable read context
+            };
         }
 
         private AsyncCursor<TResult> CreateCursor(IChannelSourceHandle channelSource, IChannelHandle channel, BsonDocument command, AggregateResult result)
@@ -360,6 +390,7 @@ namespace MongoDB.Driver.Core.Operations
                 command,
                 result.Results,
                 result.CursorId.GetValueOrDefault(0),
+                result.PostBatchResumeToken,
                 _batchSize,
                 null, // limit
                 _resultSerializer,
@@ -375,6 +406,7 @@ namespace MongoDB.Driver.Core.Operations
                 command,
                 result.Results,
                 0, // cursorId
+                null, // postBatchResumeToken
                 null, // batchSize
                 null, // limit
                 _resultSerializer,
@@ -384,9 +416,9 @@ namespace MongoDB.Driver.Core.Operations
 
         private void EnsureIsReadOnlyPipeline()
         {
-            if (Pipeline.Any(s => s.GetElement(0).Name == "$out"))
+            if (Pipeline.Any(s => { var n = s.GetElement(0).Name; return n == "$out" || n == "$merge"; }))
             {
-                throw new ArgumentException("The pipeline for an AggregateOperation contains a $out operator. Use AggregateOutputToCollectionOperation instead.", "pipeline");
+                throw new ArgumentException("The pipeline for an AggregateOperation contains a $out or $merge operator. Use AggregateOutputToCollectionOperation instead.", "pipeline");
             }
         }
 
@@ -394,6 +426,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             public long? CursorId;
             public CollectionNamespace CollectionNamespace;
+            public BsonDocument PostBatchResumeToken;
             public TResult[] Results;
         }
 
@@ -466,6 +499,10 @@ namespace MongoDB.Driver.Core.Operations
                         case "firstBatch":
                             var arraySerializer = new ArraySerializer<TResult>(_resultSerializer);
                             result.Results = arraySerializer.Deserialize(context);
+                            break;
+
+                        case "postBatchResumeToken":
+                            result.PostBatchResumeToken = BsonDocumentSerializer.Instance.Deserialize(context);
                             break;
 
                         default:
