@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
@@ -112,14 +113,14 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public Task<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public UniTask<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             var operation = CreateReadOperation();
             return operation.ExecuteAsync(binding, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public Task<BsonDocument> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
+        public UniTask<BsonDocument> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
         {
             var operation = CreateWriteOperation();
             return operation.ExecuteAsync(binding, cancellationToken);

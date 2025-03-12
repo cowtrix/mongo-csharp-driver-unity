@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Connections;
 
 namespace MongoDB.Driver.Core.WireProtocol
@@ -23,12 +24,12 @@ namespace MongoDB.Driver.Core.WireProtocol
     internal interface IWireProtocol
     {
         void Execute(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
-        Task ExecuteAsync(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask ExecuteAsync(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
     }
 
     internal interface IWireProtocol<TResult>
     {
         TResult Execute(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
-        Task<TResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<TResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

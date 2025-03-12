@@ -19,6 +19,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
@@ -160,7 +161,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
-        public async Task<IConnectionHandle> AcquireConnectionAsync(CancellationToken cancellationToken)
+        public async UniTask<IConnectionHandle> AcquireConnectionAsync(CancellationToken cancellationToken)
         {
             ThrowIfNotOpen();
 
@@ -168,7 +169,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
             try
             {
                 helper.CheckingOutConnection();
-                var enteredPool = await _poolQueue.WaitAsync(_settings.WaitQueueTimeout, cancellationToken).ConfigureAwait(false);
+                var enteredPool = await _poolQueue.WaitAsync(_settings.WaitQueueTimeout, cancellationToken);
                 return helper.EnteredPool(enteredPool);
             }
             catch (Exception ex)
@@ -204,7 +205,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     _openingEventHandler(new ConnectionPoolOpeningEvent(_serverId, _settings));
                 }
 
-                MaintainSizeAsync().ConfigureAwait(false);
+                MaintainSizeAsync();
 
                 if (_openedEventHandler != null)
                 {
@@ -234,16 +235,16 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
-        private async Task MaintainSizeAsync()
+        private async UniTask MaintainSizeAsync()
         {
             var maintenanceCancellationToken = _maintenanceCancellationTokenSource.Token;
             while (!maintenanceCancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    await PrunePoolAsync(maintenanceCancellationToken).ConfigureAwait(false);
-                    await EnsureMinSizeAsync(maintenanceCancellationToken).ConfigureAwait(false);
-                    await Task.Delay(_settings.MaintenanceInterval, maintenanceCancellationToken).ConfigureAwait(false);
+                    await PrunePoolAsync(maintenanceCancellationToken);
+                    await EnsureMinSizeAsync(maintenanceCancellationToken);
+                    await UniTask.Delay(_settings.MaintenanceInterval, cancellationToken: maintenanceCancellationToken);
                 }
                 catch
                 {
@@ -253,14 +254,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
-        private async Task PrunePoolAsync(CancellationToken cancellationToken)
+        private async UniTask PrunePoolAsync(CancellationToken cancellationToken)
         {
             bool enteredPool = false;
             try
             {
                 // if it takes too long to enter the pool, then the pool is fully utilized
                 // and we don't want to mess with it.
-                enteredPool = await _poolQueue.WaitAsync(TimeSpan.FromMilliseconds(20), cancellationToken).ConfigureAwait(false);
+                enteredPool = await _poolQueue.WaitAsync(TimeSpan.FromMilliseconds(20), cancellationToken);
                 if (!enteredPool)
                 {
                     return;
@@ -284,14 +285,14 @@ namespace MongoDB.Driver.Core.ConnectionPools
             }
         }
 
-        private async Task EnsureMinSizeAsync(CancellationToken cancellationToken)
+        private async UniTask EnsureMinSizeAsync(CancellationToken cancellationToken)
         {
             while (CreatedCount < _settings.MinConnections)
             {
                 bool enteredPool = false;
                 try
                 {
-                    enteredPool = await _poolQueue.WaitAsync(TimeSpan.FromMilliseconds(20), cancellationToken).ConfigureAwait(false);
+                    enteredPool = await _poolQueue.WaitAsync(TimeSpan.FromMilliseconds(20), cancellationToken);
                     if (!enteredPool)
                     {
                         return;
@@ -307,7 +308,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                     // when adding in a connection, we need to open it because 
                     // the whole point of having a min pool size is to have
                     // them available and ready...
-                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                    await connection.OpenAsync(cancellationToken);
                     _connectionHolder.Return(connection);
                     stopwatch.Stop();
 
@@ -548,7 +549,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _connection.Open(cancellationToken);
             }
 
-            public Task OpenAsync(CancellationToken cancellationToken)
+            public UniTask OpenAsync(CancellationToken cancellationToken)
             {
                 return _connection.OpenAsync(cancellationToken);
             }
@@ -558,7 +559,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 return _connection.ReceiveMessage(responseTo, encoderSelector, messageEncoderSettings, cancellationToken);
             }
 
-            public Task<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
+            public UniTask<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
             {
                 return _connection.ReceiveMessageAsync(responseTo, encoderSelector, messageEncoderSettings, cancellationToken);
             }
@@ -568,7 +569,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _connection.SendMessages(messages, messageEncoderSettings, cancellationToken);
             }
 
-            public Task SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
+            public UniTask SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
             {
                 return _connection.SendMessagesAsync(messages, messageEncoderSettings, cancellationToken);
             }
@@ -636,13 +637,13 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _reference.Instance.Open(cancellationToken);
             }
 
-            public Task OpenAsync(CancellationToken cancellationToken)
+            public UniTask OpenAsync(CancellationToken cancellationToken)
             {
                 ThrowIfDisposed();
                 return _reference.Instance.OpenAsync(cancellationToken);
             }
 
-            public Task<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
+            public UniTask<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
             {
                 ThrowIfDisposed();
                 return _reference.Instance.ReceiveMessageAsync(responseTo, encoderSelector, messageEncoderSettings, cancellationToken);
@@ -660,7 +661,7 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 _reference.Instance.SendMessages(messages, messageEncoderSettings, cancellationToken);
             }
 
-            public Task SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
+            public UniTask SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
             {
                 ThrowIfDisposed();
                 return _reference.Instance.SendMessagesAsync(messages, messageEncoderSettings, cancellationToken);
@@ -699,9 +700,9 @@ namespace MongoDB.Driver.Core.ConnectionPools
                 return _semaphore.Wait(timeout, cancellationToken);
             }
 
-            public Task<bool> WaitAsync(TimeSpan timeout, CancellationToken cancellationToken)
+            public async UniTask<bool> WaitAsync(TimeSpan timeout, CancellationToken cancellationToken)
             {
-                return _semaphore.WaitAsync(timeout, cancellationToken);
+                return await _semaphore.WaitAsync(timeout, cancellationToken: cancellationToken);
             }
 
             public void Dispose()

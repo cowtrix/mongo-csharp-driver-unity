@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Operations;
 
 namespace MongoDB.Driver
@@ -39,8 +40,8 @@ namespace MongoDB.Driver
         /// Executes the operation and returns a cursor to the results.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is a cursor.</returns>
-        Task<IAsyncCursor<TDocument>> ToCursorAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask whose result is a cursor.</returns>
+        UniTask<IAsyncCursor<TDocument>> ToCursorAsync(CancellationToken cancellationToken = default(CancellationToken));
     }
 
     /// <summary>
@@ -69,12 +70,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is true if the cursor contains any documents.</returns>
-        public static async Task<bool> AnyAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is true if the cursor contains any documents.</returns>
+        public static async UniTask<bool> AnyAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.AnyAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.AnyAsync(cancellationToken);
             }
         }
 
@@ -99,12 +100,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first document.</returns>
-        public static async Task<TDocument> FirstAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the first document.</returns>
+        public static async UniTask<TDocument> FirstAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.FirstAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.FirstAsync(cancellationToken);
             }
         }
 
@@ -129,12 +130,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first document of the cursor, or a default value if the cursor contains no documents.</returns>
-        public static async Task<TDocument> FirstOrDefaultAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the first document of the cursor, or a default value if the cursor contains no documents.</returns>
+        public static async UniTask<TDocument> FirstOrDefaultAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.FirstOrDefaultAsync(cancellationToken);
             }
         }
 
@@ -145,12 +146,12 @@ namespace MongoDB.Driver
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Func<TDocument, Task> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Func<TDocument, UniTask> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                await cursor.ForEachAsync(processor, cancellationToken).ConfigureAwait(false);
+                await cursor.ForEachAsync(processor, cancellationToken);
             }
         }
 
@@ -161,33 +162,12 @@ namespace MongoDB.Driver
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Func<TDocument, int, Task> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Func<TDocument, int, UniTask> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                await cursor.ForEachAsync(processor, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        /// <summary>
-        /// Calls a delegate for each document returned by the cursor.
-        /// </summary>
-        /// <remarks>
-        /// If your delegate is going to take a long time to execute or is going to block
-        /// consider using a different overload of ForEachAsync that uses a delegate that
-        /// returns a Task instead.
-        /// </remarks>
-        /// <typeparam name="TDocument">The type of the document.</typeparam>
-        /// <param name="source">The source.</param>
-        /// <param name="processor">The processor.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Action<TDocument> processor, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
-            {
-                await cursor.ForEachAsync(processor, cancellationToken).ConfigureAwait(false);
+                await cursor.ForEachAsync(processor, cancellationToken);
             }
         }
 
@@ -197,18 +177,39 @@ namespace MongoDB.Driver
         /// <remarks>
         /// If your delegate is going to take a long time to execute or is going to block
         /// consider using a different overload of ForEachAsync that uses a delegate that
-        /// returns a Task instead.
+        /// returns a UniTask instead.
         /// </remarks>
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Action<TDocument, int> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Action<TDocument> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                await cursor.ForEachAsync(processor, cancellationToken).ConfigureAwait(false);
+                await cursor.ForEachAsync(processor, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// Calls a delegate for each document returned by the cursor.
+        /// </summary>
+        /// <remarks>
+        /// If your delegate is going to take a long time to execute or is going to block
+        /// consider using a different overload of ForEachAsync that uses a delegate that
+        /// returns a UniTask instead.
+        /// </remarks>
+        /// <typeparam name="TDocument">The type of the document.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="processor">The processor.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursorSource<TDocument> source, Action<TDocument, int> processor, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
+            {
+                await cursor.ForEachAsync(processor, cancellationToken);
             }
         }
 
@@ -233,12 +234,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the only document of a cursor.</returns>
-        public static async Task<TDocument> SingleAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the only document of a cursor.</returns>
+        public static async UniTask<TDocument> SingleAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.SingleAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.SingleAsync(cancellationToken);
             }
         }
 
@@ -265,12 +266,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the only document of a cursor, or a default value if the cursor contains no documents.</returns>
-        public static async Task<TDocument> SingleOrDefaultAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the only document of a cursor, or a default value if the cursor contains no documents.</returns>
+        public static async UniTask<TDocument> SingleOrDefaultAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.SingleOrDefaultAsync(cancellationToken);
             }
         }
 
@@ -307,12 +308,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose value is the list of documents.</returns>
-        public static async Task<List<TDocument>> ToListAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose value is the list of documents.</returns>
+        public static async UniTask<List<TDocument>> ToListAsync<TDocument>(this IAsyncCursorSource<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var cursor = await source.ToCursorAsync(cancellationToken).ConfigureAwait(false))
+            using (var cursor = await source.ToCursorAsync(cancellationToken))
             {
-                return await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
+                return await cursor.ToListAsync(cancellationToken);
             }
         }
     }

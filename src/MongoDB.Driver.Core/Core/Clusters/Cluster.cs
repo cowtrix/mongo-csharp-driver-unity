@@ -20,6 +20,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Configuration;
@@ -63,7 +64,7 @@ namespace MongoDB.Driver.Core.Clusters
         private readonly IClusterClock _clusterClock = new ClusterClock();
         private readonly ClusterId _clusterId;
         private ClusterDescription _description;
-        private TaskCompletionSource<bool> _descriptionChangedTaskCompletionSource;
+        private UniTaskCompletionSource<bool> _descriptionChangedTaskCompletionSource;
         private readonly object _descriptionLock = new object();
         private Timer _rapidHeartbeatTimer;
         private readonly object _serverSelectionWaitQueueLock = new object();
@@ -88,7 +89,7 @@ namespace MongoDB.Driver.Core.Clusters
 
             _clusterId = new ClusterId();
             _description = ClusterDescription.CreateInitial(_clusterId, _settings.ConnectionMode);
-            _descriptionChangedTaskCompletionSource = new TaskCompletionSource<bool>();
+            _descriptionChangedTaskCompletionSource = new UniTaskCompletionSource<bool>();
 
             _rapidHeartbeatTimer = new Timer(RapidHeartbeatTimerCallback, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
@@ -251,7 +252,7 @@ namespace MongoDB.Driver.Core.Clusters
             }
         }
 
-        public async Task<IServer> SelectServerAsync(IServerSelector selector, CancellationToken cancellationToken)
+        public async UniTask<IServer> SelectServerAsync(IServerSelector selector, CancellationToken cancellationToken)
         {
             ThrowIfDisposedOrNotOpen();
             Ensure.IsNotNull(selector, nameof(selector));
@@ -269,7 +270,7 @@ namespace MongoDB.Driver.Core.Clusters
                         }
 
                         helper.WaitingForDescriptionToChange();
-                        await WaitForDescriptionChangedAsync(helper.Selector, helper.Description, helper.DescriptionChangedTask, helper.TimeoutRemaining, cancellationToken).ConfigureAwait(false);
+                        await WaitForDescriptionChangedAsync(helper.Selector, helper.Description, helper.DescriptionChangedTask, helper.TimeoutRemaining, cancellationToken);
                     }
                 }
                 catch (Exception ex)
@@ -293,7 +294,7 @@ namespace MongoDB.Driver.Core.Clusters
         protected void UpdateClusterDescription(ClusterDescription newClusterDescription)
         {
             ClusterDescription oldClusterDescription = null;
-            TaskCompletionSource<bool> oldDescriptionChangedTaskCompletionSource = null;
+            UniTaskCompletionSource<bool> oldDescriptionChangedTaskCompletionSource = null;
 
             lock (_descriptionLock)
             {
@@ -301,13 +302,13 @@ namespace MongoDB.Driver.Core.Clusters
                 _description = newClusterDescription;
 
                 oldDescriptionChangedTaskCompletionSource = _descriptionChangedTaskCompletionSource;
-                _descriptionChangedTaskCompletionSource = new TaskCompletionSource<bool>();
+                _descriptionChangedTaskCompletionSource = new UniTaskCompletionSource<bool>();
             }
 
             OnDescriptionChanged(oldClusterDescription, newClusterDescription);
 
             // TODO: use RunContinuationsAsynchronously instead once we require a new enough .NET Framework
-            Task.Run(() => oldDescriptionChangedTaskCompletionSource.TrySetResult(true));
+            UniTask.Run(() => oldDescriptionChangedTaskCompletionSource.TrySetResult(true));
         }
 
         private string BuildTimeoutExceptionMessage(TimeSpan timeout, IServerSelector selector, ClusterDescription clusterDescription)
@@ -337,22 +338,22 @@ namespace MongoDB.Driver.Core.Clusters
             }
         }
 
-        private void WaitForDescriptionChanged(IServerSelector selector, ClusterDescription description, Task descriptionChangedTask, TimeSpan timeout, CancellationToken cancellationToken)
+        private void WaitForDescriptionChanged(IServerSelector selector, ClusterDescription description, UniTask descriptionChangedTask, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            using (var helper = new WaitForDescriptionChangedHelper(this, selector, description, descriptionChangedTask, timeout, cancellationToken))
+            /*using (var helper = new WaitForDescriptionChangedHelper(this, selector, description, descriptionChangedTask, timeout, cancellationToken))
             {
-                var index = Task.WaitAny(helper.Tasks);
+                var index = UniTask.WaitAny(helper.Tasks);
                 helper.HandleCompletedTask(helper.Tasks[index]);
-            }
+            }*/
         }
 
-        private async Task WaitForDescriptionChangedAsync(IServerSelector selector, ClusterDescription description, Task descriptionChangedTask, TimeSpan timeout, CancellationToken cancellationToken)
+        private async UniTask WaitForDescriptionChangedAsync(IServerSelector selector, ClusterDescription description, UniTask descriptionChangedTask, TimeSpan timeout, CancellationToken cancellationToken)
         {
-            using (var helper = new WaitForDescriptionChangedHelper(this, selector, description, descriptionChangedTask, timeout, cancellationToken))
+            /*using (var helper = new WaitForDescriptionChangedHelper(this, selector, description, descriptionChangedTask, timeout, cancellationToken))
             {
-                var completedTask  = await Task.WhenAny(helper.Tasks).ConfigureAwait(false);
+                var completedTask  = await UniTask.WhenAny(helper.Tasks);
                 helper.HandleCompletedTask(completedTask);
-            }
+            }*/
         }
 
         private void ThrowTimeoutException(IServerSelector selector, ClusterDescription description)
@@ -366,7 +367,7 @@ namespace MongoDB.Driver.Core.Clusters
         {
             private readonly Cluster _cluster;
             private ClusterDescription _description;
-            private Task _descriptionChangedTask;
+            private UniTask _descriptionChangedTask;
             private bool _serverSelectionWaitQueueEntered;
             private readonly IServerSelector _selector;
             private readonly Stopwatch _stopwatch;
@@ -385,7 +386,7 @@ namespace MongoDB.Driver.Core.Clusters
                 get { return _description; }
             }
 
-            public Task DescriptionChangedTask
+            public UniTask DescriptionChangedTask
             {
                 get { return _descriptionChangedTask; }
             }
@@ -519,33 +520,33 @@ namespace MongoDB.Driver.Core.Clusters
         private sealed class WaitForDescriptionChangedHelper : IDisposable
         {
             private readonly CancellationToken _cancellationToken;
-            private readonly TaskCompletionSource<bool> _cancellationTaskCompletionSource;
+            private readonly UniTaskCompletionSource<bool> _cancellationTaskCompletionSource;
             private readonly CancellationTokenRegistration _cancellationTokenRegistration;
             private readonly Cluster _cluster;
             private readonly ClusterDescription _description;
-            private readonly Task _descriptionChangedTask;
+            private readonly UniTask _descriptionChangedTask;
             private readonly IServerSelector _selector;
             private readonly CancellationTokenSource _timeoutCancellationTokenSource;
-            private readonly Task _timeoutTask;
+            private readonly UniTask _timeoutTask;
 
-            public  WaitForDescriptionChangedHelper(Cluster cluster, IServerSelector selector, ClusterDescription description, Task descriptionChangedTask , TimeSpan timeout, CancellationToken cancellationToken)
+            public  WaitForDescriptionChangedHelper(Cluster cluster, IServerSelector selector, ClusterDescription description, UniTask descriptionChangedTask , TimeSpan timeout, CancellationToken cancellationToken)
             {
                 _cluster = cluster;
                 _description = description;
                 _selector = selector;
                 _descriptionChangedTask = descriptionChangedTask;
                 _cancellationToken = cancellationToken;
-                _cancellationTaskCompletionSource = new TaskCompletionSource<bool>();
+                _cancellationTaskCompletionSource = new UniTaskCompletionSource<bool>();
                 _cancellationTokenRegistration = cancellationToken.Register(() => _cancellationTaskCompletionSource.TrySetCanceled());
                 _timeoutCancellationTokenSource = new CancellationTokenSource();
-                _timeoutTask = Task.Delay(timeout, _timeoutCancellationTokenSource.Token);
+                _timeoutTask = UniTask.Delay(timeout, cancellationToken: _timeoutCancellationTokenSource.Token);
             }
 
-            public Task[] Tasks
+            public UniTask[] Tasks
             {
                 get
                 {
-                    return new Task[]
+                    return new UniTask[]
                     {
                         _descriptionChangedTask,
                         _timeoutTask,
@@ -560,15 +561,15 @@ namespace MongoDB.Driver.Core.Clusters
                 _timeoutCancellationTokenSource.Dispose();
             }
 
-            public void HandleCompletedTask(Task completedTask)
+            public void HandleCompletedTask(UniTask completedTask)
             {
-                if (completedTask == _timeoutTask)
+                if (completedTask.Equals(_timeoutTask))
                 {
                     _cluster.ThrowTimeoutException(_selector, _description);
                 }
                 _timeoutCancellationTokenSource.Cancel();
 
-                if (completedTask == _cancellationTaskCompletionSource.Task)
+                if (completedTask.Equals(_cancellationTaskCompletionSource.Task))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
                 }

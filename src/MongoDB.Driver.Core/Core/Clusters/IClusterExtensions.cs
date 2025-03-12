@@ -15,6 +15,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Servers;
@@ -45,7 +46,7 @@ namespace MongoDB.Driver.Core.Clusters
             return server;
         }
         
-        public static async Task<IServer> SelectServerAndPinIfNeededAsync(
+        public static async UniTask<IServer> SelectServerAndPinIfNeededAsync(
             this ICluster cluster,
             ICoreSessionHandle session,
             IServerSelector selector,
@@ -59,7 +60,7 @@ namespace MongoDB.Driver.Core.Clusters
 
             // Server selection also updates the cluster type, allowing us to to determine if the server
             // should be pinned.
-            var server = await cluster.SelectServerAsync(selector, cancellationToken).ConfigureAwait(false);
+            var server = await cluster.SelectServerAsync(selector, cancellationToken);
             PinServerIfNeeded(cluster, session, server);
 
             return server;

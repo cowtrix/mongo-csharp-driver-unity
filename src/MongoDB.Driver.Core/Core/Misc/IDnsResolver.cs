@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -46,8 +47,8 @@ namespace MongoDB.Driver.Core.Misc
     internal interface IDnsResolver
     {
         List<SrvRecord> ResolveSrvRecords(string service, CancellationToken cancellation);
-        Task<List<SrvRecord>> ResolveSrvRecordsAsync(string service, CancellationToken cancellation);
+        UniTask<List<SrvRecord>> ResolveSrvRecordsAsync(string service, CancellationToken cancellation);
         List<TxtRecord> ResolveTxtRecords(string domainName, CancellationToken cancellation);
-        Task<List<TxtRecord>> ResolveTxtRecordsAsync(string domainName, CancellationToken cancellation);
+        UniTask<List<TxtRecord>> ResolveTxtRecordsAsync(string domainName, CancellationToken cancellation);
     }
 }

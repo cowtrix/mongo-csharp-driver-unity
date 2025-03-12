@@ -18,6 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
@@ -147,7 +148,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first result.</returns>
+        /// <returns>A UniTask whose result is the first result.</returns>
         public static TProjection First<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
@@ -162,8 +163,8 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first result.</returns>
-        public static Task<TProjection> FirstAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the first result.</returns>
+        public static UniTask<TProjection> FirstAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
 
@@ -177,7 +178,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first result or null.</returns>
+        /// <returns>A UniTask whose result is the first result or null.</returns>
         public static TProjection FirstOrDefault<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
@@ -192,8 +193,8 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first result or null.</returns>
-        public static Task<TProjection> FirstOrDefaultAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the first result or null.</returns>
+        public static UniTask<TProjection> FirstOrDefaultAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
 
@@ -207,7 +208,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the single result.</returns>
+        /// <returns>A UniTask whose result is the single result.</returns>
         public static TProjection Single<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
@@ -226,8 +227,8 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the single result.</returns>
-        public static Task<TProjection> SingleAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the single result.</returns>
+        public static UniTask<TProjection> SingleAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
 
@@ -245,7 +246,7 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the single result or null.</returns>
+        /// <returns>A UniTask whose result is the single result or null.</returns>
         public static TProjection SingleOrDefault<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
@@ -264,8 +265,8 @@ namespace MongoDB.Driver
         /// <typeparam name="TProjection">The type of the projection (same as TDocument if there is no projection).</typeparam>
         /// <param name="find">The fluent find.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the single result or null.</returns>
-        public static Task<TProjection> SingleOrDefaultAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the single result or null.</returns>
+        public static UniTask<TProjection> SingleOrDefaultAsync<TDocument, TProjection>(this IFindFluent<TDocument, TProjection> find, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(find, nameof(find));
 

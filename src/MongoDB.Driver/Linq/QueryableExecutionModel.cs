@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 
 namespace MongoDB.Driver.Linq
@@ -35,7 +36,7 @@ namespace MongoDB.Driver.Linq
         {
         }
 
-        internal abstract Task ExecuteAsync<TInput>(IMongoCollection<TInput> collection, AggregateOptions options, CancellationToken cancellationToken);
+        internal abstract UniTask ExecuteAsync<TInput>(IMongoCollection<TInput> collection, AggregateOptions options, CancellationToken cancellationToken);
 
         internal abstract object Execute<TInput>(IMongoCollection<TInput> collection, AggregateOptions options);
     }

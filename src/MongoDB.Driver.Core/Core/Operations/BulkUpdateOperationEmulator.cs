@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Operations.ElementNameValidators;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
@@ -58,7 +59,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        protected override Task<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, UpdateRequest request, CancellationToken cancellationToken)
+        protected override UniTask<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, UpdateRequest request, CancellationToken cancellationToken)
         {
             if (request.Collation != null)
             {

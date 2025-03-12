@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -142,9 +143,9 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="resultSerializer">The result serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the Command protocol.</returns>
+        /// <returns>A UniTask whose result is the result of the Command protocol.</returns>
         [Obsolete("Use the newest overload instead.")]
-        Task<TResult> CommandAsync<TResult>(
+        UniTask<TResult> CommandAsync<TResult>(
             DatabaseNamespace databaseNamespace,
             BsonDocument command,
             IElementNameValidator commandValidator,
@@ -170,10 +171,10 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the result of the Command protocol.
+        /// A UniTask whose result is the result of the Command protocol.
         /// </returns>
         [Obsolete("Use the newest overload instead.")]
-        Task<TResult> CommandAsync<TResult>(
+        UniTask<TResult> CommandAsync<TResult>(
             ICoreSession session,
             ReadPreference readPreference,
             DatabaseNamespace databaseNamespace,
@@ -203,9 +204,9 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the result of the Command protocol.
+        /// A UniTask whose result is the result of the Command protocol.
         /// </returns>
-        Task<TResult> CommandAsync<TResult>(
+        UniTask<TResult> CommandAsync<TResult>(
             ICoreSession session,
             ReadPreference readPreference,
             DatabaseNamespace databaseNamespace,
@@ -246,8 +247,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="writeConcern">The write concern.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the Delete protocol.</returns>
-        Task<WriteConcernResult> DeleteAsync(
+        /// <returns>A UniTask whose result is the result of the Delete protocol.</returns>
+        UniTask<WriteConcernResult> DeleteAsync(
             CollectionNamespace collectionNamespace,
             BsonDocument query,
             bool isMulti,
@@ -287,8 +288,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="serializer">The serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the GetMore protocol.</returns>
-        Task<CursorBatch<TDocument>> GetMoreAsync<TDocument>(
+        /// <returns>A UniTask whose result is the result of the GetMore protocol.</returns>
+        UniTask<CursorBatch<TDocument>> GetMoreAsync<TDocument>(
             CollectionNamespace collectionNamespace,
             BsonDocument query,
             long cursorId,
@@ -338,8 +339,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="continueOnError">if set to <c>true</c> the server will continue with subsequent Inserts even if errors occur.</param>
         /// <param name="shouldSendGetLastError">A delegate that determines whether to piggy-back a GetLastError messsage with the Insert message.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the Insert protocol.</returns>
-        Task<WriteConcernResult> InsertAsync<TDocument>(
+        /// <returns>A UniTask whose result is the result of the Insert protocol.</returns>
+        UniTask<WriteConcernResult> InsertAsync<TDocument>(
             CollectionNamespace collectionNamespace,
             WriteConcern writeConcern,
             IBsonSerializer<TDocument> serializer,
@@ -368,8 +369,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="cursorIds">The cursor ids.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that represents the KillCursors protocol.</returns>
-        Task KillCursorsAsync(
+        /// <returns>A UniTask that represents the KillCursors protocol.</returns>
+        UniTask KillCursorsAsync(
             IEnumerable<long> cursorIds,
             MessageEncoderSettings messageEncoderSettings,
             CancellationToken cancellationToken);
@@ -430,8 +431,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="serializer">The serializer.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the Insert protocol.</returns>
-        Task<CursorBatch<TDocument>> QueryAsync<TDocument>(
+        /// <returns>A UniTask whose result is the result of the Insert protocol.</returns>
+        UniTask<CursorBatch<TDocument>> QueryAsync<TDocument>(
             CollectionNamespace collectionNamespace,
             BsonDocument query,
             BsonDocument fields,
@@ -484,8 +485,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="isMulti">if set to <c>true</c> the Update can affect multiple documents.</param>
         /// <param name="isUpsert">if set to <c>true</c> the document will be inserted if it is not found.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the Update protocol.</returns>
-        Task<WriteConcernResult> UpdateAsync(
+        /// <returns>A UniTask whose result is the result of the Update protocol.</returns>
+        UniTask<WriteConcernResult> UpdateAsync(
             CollectionNamespace collectionNamespace,
             MessageEncoderSettings messageEncoderSettings,
             WriteConcern writeConcern,

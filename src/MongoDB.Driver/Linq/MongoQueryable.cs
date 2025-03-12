@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// true if the source sequence contains any elements; otherwise, false.
         /// </returns>
-        public static Task<bool> AnyAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<bool> AnyAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<bool>(
                 Expression.Call(
@@ -56,7 +57,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// true if any elements in the source sequence pass the test in the specified predicate; otherwise, false.
         /// </returns>
-        public static Task<bool> AnyAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<bool> AnyAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<bool>(
                 Expression.Call(
@@ -72,7 +73,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<decimal> AverageAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> AverageAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -87,7 +88,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<decimal?> AverageAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> AverageAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -102,7 +103,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double> AverageAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -117,7 +118,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double?> AverageAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -132,7 +133,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<float> AverageAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> AverageAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -147,7 +148,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<float?> AverageAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> AverageAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -162,7 +163,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double> AverageAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -177,7 +178,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double?> AverageAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -192,7 +193,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double> AverageAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -207,7 +208,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the average of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The average of the values in the sequence.</returns>
-        public static Task<double?> AverageAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -227,7 +228,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<decimal> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -248,7 +249,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<decimal?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -269,7 +270,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -290,7 +291,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -311,7 +312,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<float> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -332,7 +333,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<float?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -353,7 +354,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -374,7 +375,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -395,7 +396,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -416,7 +417,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The average of the projected values.
         /// </returns>
-        public static Task<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> AverageAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -435,7 +436,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The number of elements in the input sequence.
         /// </returns>
-        public static Task<int> CountAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int> CountAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int>(
                 Expression.Call(
@@ -454,7 +455,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The number of elements in the sequence that satisfies the condition in the predicate function.
         /// </returns>
-        public static Task<int> CountAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int> CountAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int>(
                 Expression.Call(
@@ -486,7 +487,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The first element in <paramref name="source" />.
         /// </returns>
-        public static Task<TSource> FirstAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> FirstAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -505,7 +506,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The first element in <paramref name="source" /> that passes the test in <paramref name="predicate" />.
         /// </returns>
-        public static Task<TSource> FirstAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> FirstAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -524,7 +525,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// default(<typeparamref name="TSource" />) if <paramref name="source" /> is empty; otherwise, the first element in <paramref name="source" />.
         /// </returns>
-        public static Task<TSource> FirstOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> FirstOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -543,7 +544,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// default(<typeparamref name="TSource" />) if <paramref name="source" /> is empty or if no element passes the test specified by <paramref name="predicate" />; otherwise, the first element in <paramref name="source" /> that passes the test specified by <paramref name="predicate" />.
         /// </returns>
-        public static Task<TSource> FirstOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> FirstOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -678,7 +679,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The number of elements in the input sequence.
         /// </returns>
-        public static Task<long> LongCountAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long> LongCountAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long>(
                 Expression.Call(
@@ -697,7 +698,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The number of elements in the sequence that satisfies the condition in the predicate function.
         /// </returns>
-        public static Task<long> LongCountAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long> LongCountAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long>(
                 Expression.Call(
@@ -716,7 +717,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The maximum value in the sequence.
         /// </returns>
-        public static Task<TSource> MaxAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> MaxAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -736,7 +737,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The maximum value in the sequence.
         /// </returns>
-        public static Task<TResult> MaxAsync<TSource, TResult>(this IMongoQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TResult> MaxAsync<TSource, TResult>(this IMongoQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TResult>(
                 Expression.Call(
@@ -755,7 +756,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The minimum value in the sequence.
         /// </returns>
-        public static Task<TSource> MinAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> MinAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -775,7 +776,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The minimum value in the sequence.
         /// </returns>
-        public static Task<TResult> MinAsync<TSource, TResult>(this IMongoQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TResult> MinAsync<TSource, TResult>(this IMongoQueryable<TSource> source, Expression<Func<TSource, TResult>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TResult>(
                 Expression.Call(
@@ -907,7 +908,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The single element of the input sequence.
         /// </returns>
-        public static Task<TSource> SingleAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> SingleAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -926,7 +927,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The single element of the input sequence that satisfies the condition in <paramref name="predicate" />.
         /// </returns>
-        public static Task<TSource> SingleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> SingleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -945,7 +946,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The single element of the input sequence, or default(<typeparamref name="TSource" />) if the sequence contains no elements.
         /// </returns>
-        public static Task<TSource> SingleOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> SingleOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -964,7 +965,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The single element of the input sequence that satisfies the condition in <paramref name="predicate" />, or default(<typeparamref name="TSource" />) if no such element is found.
         /// </returns>
-        public static Task<TSource> SingleOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<TSource> SingleOrDefaultAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, bool>> predicate, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<TSource>(
                 Expression.Call(
@@ -1328,7 +1329,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1345,7 +1346,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1362,7 +1363,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1379,7 +1380,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1396,7 +1397,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float> StandardDeviationPopulationAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> StandardDeviationPopulationAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -1413,7 +1414,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float?> StandardDeviationPopulationAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> StandardDeviationPopulationAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -1430,7 +1431,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1447,7 +1448,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1464,7 +1465,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal> StandardDeviationPopulationAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> StandardDeviationPopulationAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -1481,7 +1482,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal?> StandardDeviationPopulationAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> StandardDeviationPopulationAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -1500,7 +1501,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1520,7 +1521,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1540,7 +1541,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1560,7 +1561,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1580,7 +1581,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -1600,7 +1601,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -1620,7 +1621,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -1640,7 +1641,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -1660,7 +1661,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -1680,7 +1681,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> StandardDeviationPopulationAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -2028,7 +2029,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2045,7 +2046,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2062,7 +2063,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2079,7 +2080,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2096,7 +2097,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float> StandardDeviationSampleAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> StandardDeviationSampleAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -2113,7 +2114,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float?> StandardDeviationSampleAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> StandardDeviationSampleAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -2130,7 +2131,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2147,7 +2148,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2164,7 +2165,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal> StandardDeviationSampleAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> StandardDeviationSampleAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -2181,7 +2182,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal?> StandardDeviationSampleAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> StandardDeviationSampleAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -2200,7 +2201,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2220,7 +2221,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2240,7 +2241,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2260,7 +2261,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2280,7 +2281,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -2300,7 +2301,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<float?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -2320,7 +2321,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2340,7 +2341,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2360,7 +2361,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -2380,7 +2381,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The population standard deviation of the sequence of values.
         /// </returns>
-        public static Task<decimal?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> StandardDeviationSampleAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -2396,7 +2397,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<decimal> SumAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> SumAsync(this IMongoQueryable<decimal> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -2411,7 +2412,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<decimal?> SumAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> SumAsync(this IMongoQueryable<decimal?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -2426,7 +2427,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<double> SumAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> SumAsync(this IMongoQueryable<double> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2441,7 +2442,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<double?> SumAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> SumAsync(this IMongoQueryable<double?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2456,7 +2457,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<float> SumAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> SumAsync(this IMongoQueryable<float> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -2471,7 +2472,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<float?> SumAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> SumAsync(this IMongoQueryable<float?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -2486,7 +2487,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<int> SumAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int> SumAsync(this IMongoQueryable<int> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int>(
                 Expression.Call(
@@ -2501,7 +2502,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<int?> SumAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int?> SumAsync(this IMongoQueryable<int?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int?>(
                 Expression.Call(
@@ -2516,7 +2517,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<long> SumAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long> SumAsync(this IMongoQueryable<long> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long>(
                 Expression.Call(
@@ -2531,7 +2532,7 @@ namespace MongoDB.Driver.Linq
         /// <param name="source">A sequence of values to calculate the sum of.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The sum of the values in the sequence.</returns>
-        public static Task<long?> SumAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long?> SumAsync(this IMongoQueryable<long?> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long?>(
                 Expression.Call(
@@ -2551,7 +2552,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<decimal> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal>(
                 Expression.Call(
@@ -2572,7 +2573,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<decimal?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<decimal?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, decimal?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<decimal?>(
                 Expression.Call(
@@ -2593,7 +2594,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<double> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double>(
                 Expression.Call(
@@ -2614,7 +2615,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<double?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<double?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, double?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<double?>(
                 Expression.Call(
@@ -2635,7 +2636,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<float> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float>(
                 Expression.Call(
@@ -2656,7 +2657,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<float?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<float?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, float?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<float?>(
                 Expression.Call(
@@ -2677,7 +2678,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<int> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int>(
                 Expression.Call(
@@ -2698,7 +2699,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<int?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<int?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, int?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<int?>(
                 Expression.Call(
@@ -2719,7 +2720,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<long> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long>(
                 Expression.Call(
@@ -2740,7 +2741,7 @@ namespace MongoDB.Driver.Linq
         /// <returns>
         /// The sum of the projected values.
         /// </returns>
-        public static Task<long?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
+        public static UniTask<long?> SumAsync<TSource>(this IMongoQueryable<TSource> source, Expression<Func<TSource, long?>> selector, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ((IMongoQueryProvider)source.Provider).ExecuteAsync<long?>(
                 Expression.Call(

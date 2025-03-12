@@ -21,6 +21,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Misc;
 
@@ -80,16 +81,16 @@ namespace MongoDB.Driver.Core.Connections
 #endif
         }
 
-        public async Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
+        public async UniTask<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
 #if NETSTANDARD1_5 || NETSTANDARD1_6
-            var resolved = await ResolveEndPointsAsync(endPoint).ConfigureAwait(false);
+            var resolved = await ResolveEndPointsAsync(endPoint);
             for (int i = 0; i < resolved.Length; i++)
             {
                 try
                 {
                     var socket = CreateSocket(resolved[i]);
-                    await ConnectAsync(socket, resolved[i], cancellationToken).ConfigureAwait(false);
+                    await ConnectAsync(socket, resolved[i], cancellationToken);
                     return CreateNetworkStream(socket);
                 }
                 catch
@@ -107,7 +108,7 @@ namespace MongoDB.Driver.Core.Connections
             throw new InvalidOperationException("Unabled to resolve endpoint.");
 #else
             var socket = CreateSocket(endPoint);
-            await ConnectAsync(socket, endPoint, cancellationToken).ConfigureAwait(false);
+            await ConnectAsync(socket, endPoint, cancellationToken);
             return CreateNetworkStream(socket);
 #endif
         }
@@ -166,7 +167,7 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        private async Task ConnectAsync(Socket socket, EndPoint endPoint, CancellationToken cancellationToken)
+        private async UniTask ConnectAsync(Socket socket, EndPoint endPoint, CancellationToken cancellationToken)
         {
             var connected = false;
             var cancelled = false;
@@ -179,16 +180,16 @@ namespace MongoDB.Driver.Core.Connections
                 {
                     var dnsEndPoint = endPoint as DnsEndPoint;
 #if NETSTANDARD1_5 || NETSTANDARD1_6
-                    await socket.ConnectAsync(endPoint).ConfigureAwait(false); // TODO: honor cancellationToken
+                    await socket.ConnectAsync(endPoint); // TODO: honor cancellationToken
 #else
                     if (dnsEndPoint != null)
                     {
                         // mono doesn't support DnsEndPoint in its BeginConnect method.
-                        await Task.Factory.FromAsync(socket.BeginConnect(dnsEndPoint.Host, dnsEndPoint.Port, null, null), socket.EndConnect).ConfigureAwait(false);
+                        await UniTask.FromAsync((_, _) => socket.BeginConnect(dnsEndPoint.Host, dnsEndPoint.Port, null, null), socket.EndConnect);
                     }
                     else
                     {
-                        await Task.Factory.FromAsync(socket.BeginConnect(endPoint, null, null), socket.EndConnect).ConfigureAwait(false);
+                        await UniTask.FromAsync((_, _) => socket.BeginConnect(endPoint, null, null), socket.EndConnect);
                     }
 #endif
                     connected = true;
@@ -278,7 +279,7 @@ namespace MongoDB.Driver.Core.Connections
             return socket;
         }
 
-        private async Task<EndPoint[]> ResolveEndPointsAsync(EndPoint initial)
+        private async UniTask<EndPoint[]> ResolveEndPointsAsync(EndPoint initial)
         {
             var dnsInitial = initial as DnsEndPoint;
             if (dnsInitial == null)
@@ -298,7 +299,7 @@ namespace MongoDB.Driver.Core.Connections
                 preferred = _settings.AddressFamily;
             }
 
-            return (await Dns.GetHostAddressesAsync(dnsInitial.Host).ConfigureAwait(false))
+            return (await Dns.GetHostAddressesAsync(dnsInitial.Host))
                 .Select(x => new IPEndPoint(x, dnsInitial.Port))
                 .OrderBy(x => x, new PreferredAddressFamilyComparer(preferred))
                 .ToArray();

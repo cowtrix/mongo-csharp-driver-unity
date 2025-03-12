@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -152,13 +153,13 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public sealed override Task DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override UniTask DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => DropDatabaseAsync(session, name, cancellationToken), cancellationToken);
         }
 
         /// <inheritdoc/>
-        public sealed override Task DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override UniTask DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(session, nameof(session));
             var messageEncoderSettings = GetMessageEncoderSettings();
@@ -199,19 +200,19 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public sealed override Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        public sealed override UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => ListDatabaseNamesAsync(session, cancellationToken), cancellationToken);
         }
 
         /// <inheritdoc />
-        public sealed override async Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        public sealed override async UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var options = new ListDatabasesOptions { NameOnly = true };
-            var databases = await ListDatabasesAsync(session, options, cancellationToken).ConfigureAwait(false);
+            var databases = await ListDatabasesAsync(session, options, cancellationToken);
             return CreateDatabaseNamesCursor(databases);
         }
 
@@ -252,14 +253,14 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public sealed override Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public sealed override UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => ListDatabasesAsync(session, null, cancellationToken), cancellationToken);
         }
 
         /// <inheritdoc/>
-        public sealed override Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public sealed override UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -267,7 +268,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public sealed override Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public sealed override UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -275,7 +276,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public sealed override Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public sealed override UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             IClientSessionHandle session,
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -300,10 +301,10 @@ namespace MongoDB.Driver
         /// <summary>
         /// Starts an implicit session.
         /// </summary>
-        /// <returns>A Task whose result is a session.</returns>
-        internal async Task<IClientSessionHandle> StartImplicitSessionAsync(CancellationToken cancellationToken)
+        /// <returns>A UniTask whose result is a session.</returns>
+        internal async UniTask<IClientSessionHandle> StartImplicitSessionAsync(CancellationToken cancellationToken)
         {
-            var areSessionsSupported = await AreSessionsSupportedAsync(cancellationToken).ConfigureAwait(false);
+            var areSessionsSupported = await AreSessionsSupportedAsync(cancellationToken);
             return StartImplicitSession(areSessionsSupported);
         }
 
@@ -315,9 +316,9 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public sealed override async Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public sealed override async UniTask<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var areSessionsSupported = await AreSessionsSupportedAsync(cancellationToken).ConfigureAwait(false);
+            var areSessionsSupported = await AreSessionsSupportedAsync(cancellationToken);
             return StartSession(options, areSessionsSupported);
         }
 
@@ -344,7 +345,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public override UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -353,7 +354,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public override UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -398,9 +399,9 @@ namespace MongoDB.Driver
             return AreSessionsSupported(_cluster.Description) ?? AreSessionsSupportedAfterServerSelection(cancellationToken);
         }
 
-        private async Task<bool> AreSessionsSupportedAsync(CancellationToken cancellationToken)
+        private async UniTask<bool> AreSessionsSupportedAsync(CancellationToken cancellationToken)
         {
-            return AreSessionsSupported(_cluster.Description) ?? await AreSessionsSupportedAfterSeverSelctionAsync(cancellationToken).ConfigureAwait(false);
+            return AreSessionsSupported(_cluster.Description) ?? await AreSessionsSupportedAfterSeverSelctionAsync(cancellationToken);
         }
 
         private bool? AreSessionsSupported(ClusterDescription clusterDescription)
@@ -430,10 +431,10 @@ namespace MongoDB.Driver
             return AreSessionsSupported(selector.ClusterDescription) ?? false;
         }
 
-        private async Task<bool> AreSessionsSupportedAfterSeverSelctionAsync(CancellationToken cancellationToken)
+        private async UniTask<bool> AreSessionsSupportedAfterSeverSelctionAsync(CancellationToken cancellationToken)
         {
             var selector = new AreSessionsSupportedServerSelector();
-            var selectedServer = await _cluster.SelectServerAsync(selector, cancellationToken).ConfigureAwait(false);
+            var selectedServer = await _cluster.SelectServerAsync(selector, cancellationToken);
             return AreSessionsSupported(selector.ClusterDescription) ?? false;
         }
 
@@ -494,11 +495,11 @@ namespace MongoDB.Driver
             }
         }
 
-        private async Task<TResult> ExecuteReadOperationAsync<TResult>(IClientSessionHandle session, IReadOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
+        private async UniTask<TResult> ExecuteReadOperationAsync<TResult>(IClientSessionHandle session, IReadOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var binding = CreateReadBinding(session))
             {
-                return await _operationExecutor.ExecuteReadOperationAsync(binding, operation, cancellationToken).ConfigureAwait(false);
+                return await _operationExecutor.ExecuteReadOperationAsync(binding, operation, cancellationToken);
             }
         }
 
@@ -510,11 +511,11 @@ namespace MongoDB.Driver
             }
         }
 
-        private async Task<TResult> ExecuteWriteOperationAsync<TResult>(IClientSessionHandle session, IWriteOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
+        private async UniTask<TResult> ExecuteWriteOperationAsync<TResult>(IClientSessionHandle session, IWriteOperation<TResult> operation, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var binding = CreateReadWriteBinding(session))
             {
-                return await _operationExecutor.ExecuteWriteOperationAsync(binding, operation, cancellationToken).ConfigureAwait(false);
+                return await _operationExecutor.ExecuteWriteOperationAsync(binding, operation, cancellationToken);
             }
         }
 
@@ -577,19 +578,19 @@ namespace MongoDB.Driver
             }
         }
 
-        private async Task UsingImplicitSessionAsync(Func<IClientSessionHandle, Task> funcAsync, CancellationToken cancellationToken)
+        private async UniTask UsingImplicitSessionAsync(Func<IClientSessionHandle, UniTask> funcAsync, CancellationToken cancellationToken)
         {
-            using (var session = await StartImplicitSessionAsync(cancellationToken).ConfigureAwait(false))
+            using (var session = await StartImplicitSessionAsync(cancellationToken))
             {
-                await funcAsync(session).ConfigureAwait(false);
+                await funcAsync(session);
             }
         }
 
-        private async Task<TResult> UsingImplicitSessionAsync<TResult>(Func<IClientSessionHandle, Task<TResult>> funcAsync, CancellationToken cancellationToken)
+        private async UniTask<TResult> UsingImplicitSessionAsync<TResult>(Func<IClientSessionHandle, UniTask<TResult>> funcAsync, CancellationToken cancellationToken)
         {
-            using (var session = await StartImplicitSessionAsync(cancellationToken).ConfigureAwait(false))
+            using (var session = await StartImplicitSessionAsync(cancellationToken))
             {
-                return await funcAsync(session).ConfigureAwait(false);
+                return await funcAsync(session);
             }
         }
 

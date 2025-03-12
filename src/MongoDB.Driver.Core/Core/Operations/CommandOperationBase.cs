@@ -15,6 +15,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -150,7 +151,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="readPreference">The read preference.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the command result.
+        /// A UniTask whose result is the command result.
         /// </returns>
         protected TCommandResult ExecuteProtocol(IChannelHandle channel, ICoreSessionHandle session, ReadPreference readPreference, CancellationToken cancellationToken)
         {
@@ -179,7 +180,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="readPreference">The read preference.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the command result.
+        /// A UniTask whose result is the command result.
         /// </returns>
         protected TCommandResult ExecuteProtocol(
             IChannelSource channelSource,
@@ -201,9 +202,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="readPreference">The read preference.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the command result.
+        /// A UniTask whose result is the command result.
         /// </returns>
-        protected Task<TCommandResult> ExecuteProtocolAsync(IChannelHandle channel, ICoreSessionHandle session, ReadPreference readPreference, CancellationToken cancellationToken)
+        protected UniTask<TCommandResult> ExecuteProtocolAsync(IChannelHandle channel, ICoreSessionHandle session, ReadPreference readPreference, CancellationToken cancellationToken)
         {
             var additionalOptions = GetEffectiveAdditionalOptions();
 
@@ -230,17 +231,17 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="readPreference">The read preference.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the command result.
+        /// A UniTask whose result is the command result.
         /// </returns>
-        protected async Task<TCommandResult> ExecuteProtocolAsync(
+        protected async UniTask<TCommandResult> ExecuteProtocolAsync(
             IChannelSource channelSource,
             ICoreSessionHandle session,
             ReadPreference readPreference,
             CancellationToken cancellationToken)
         {
-            using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
+            using (var channel = await channelSource.GetChannelAsync(cancellationToken))
             {
-                return await ExecuteProtocolAsync(channel, session, readPreference, cancellationToken).ConfigureAwait(false);
+                return await ExecuteProtocolAsync(channel, session, readPreference, cancellationToken);
             }
         }
 

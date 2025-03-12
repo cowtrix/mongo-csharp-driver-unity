@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
 
@@ -102,8 +103,8 @@ namespace MongoDB.Driver
         /// Aborts the transaction.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask.</returns>
+        UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Advances the cluster time.
@@ -127,8 +128,8 @@ namespace MongoDB.Driver
         /// Commits the transaction.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask.</returns>
+        UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Starts a transaction.
@@ -154,7 +155,7 @@ namespace MongoDB.Driver
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <typeparam name="TResult">The type of callback result.</typeparam>
         /// <returns>The callback result.</returns>
-        Task<TResult> WithTransactionAsync<TResult>(Func<IClientSessionHandle, CancellationToken, Task<TResult>> callbackAsync, TransactionOptions transactionOptions = null, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<TResult> WithTransactionAsync<TResult>(Func<IClientSessionHandle, CancellationToken, UniTask<TResult>> callbackAsync, TransactionOptions transactionOptions = null, CancellationToken cancellationToken = default(CancellationToken));
     }
 
     /// <summary>

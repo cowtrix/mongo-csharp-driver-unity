@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +39,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="context">The context.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result.</returns>
-        Task<TResult> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken);
+        UniTask<TResult> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -61,7 +62,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="context">The context.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result.</returns>
-        Task<TResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken);
+        UniTask<TResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -88,7 +89,7 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="transactionNumber">The transaction number.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result.</returns>
-        Task<TResult> ExecuteAttemptAsync(RetryableReadContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken);
+        UniTask<TResult> ExecuteAttemptAsync(RetryableReadContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -115,6 +116,6 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="transactionNumber">The transaction number.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The result.</returns>
-        Task<TResult> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken);
+        UniTask<TResult> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken);
     }
 }

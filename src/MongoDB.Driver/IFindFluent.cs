@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 
 namespace MongoDB.Driver
@@ -61,9 +62,9 @@ namespace MongoDB.Driver
         /// Counts the number of documents.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the count.</returns>
+        /// <returns>A UniTask whose result is the count.</returns>
         [Obsolete("Use CountDocumentsAsync instead.")]
-        Task<long> CountAsync(CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<long> CountAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Counts the number of documents.
@@ -106,8 +107,8 @@ namespace MongoDB.Driver
         /// </code>
         /// </remarks>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the count.</returns>
-        Task<long> CountDocumentsAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask whose result is the count.</returns>
+        UniTask<long> CountDocumentsAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Limits the number of documents.

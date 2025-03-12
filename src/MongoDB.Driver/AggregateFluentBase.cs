@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 
@@ -153,7 +154,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default)
+        public virtual UniTask<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
@@ -168,7 +169,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken);
+        public abstract UniTask<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken);
 
         /// <inheritdoc />
         public abstract IAggregateFluent<TNewResult> Project<TNewResult>(ProjectionDefinition<TResult, TNewResult> projection);
@@ -219,6 +220,6 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken);
+        public abstract UniTask<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken);
     }
 }

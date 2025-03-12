@@ -15,6 +15,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
@@ -106,7 +107,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static Task<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
+        public static UniTask<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
             this IMongoDatabase database,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -126,7 +127,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        public static Task<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
+        public static UniTask<IChangeStreamCursor<ChangeStreamDocument<BsonDocument>>> WatchAsync(
             this IMongoDatabase database,
             IClientSessionHandle session,
             ChangeStreamOptions options = null,

@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 
@@ -86,9 +87,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="session">The session.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the result of the operation.
+        /// A UniTask whose result is the result of the operation.
         /// </returns>
-        public static async Task<TResult> ExecuteAsync<TResult>(
+        public static async UniTask<TResult> ExecuteAsync<TResult>(
             this IReadOperation<TResult> operation,
             IChannelSourceHandle channelSource,
             ReadPreference readPreference,
@@ -98,7 +99,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull(operation, nameof(operation));
             using (var readBinding = new ChannelSourceReadWriteBinding(channelSource.Fork(), readPreference, session.Fork()))
             {
-                return await operation.ExecuteAsync(readBinding, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAsync(readBinding, cancellationToken);
             }
         }
 
@@ -111,9 +112,9 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="session">The session.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the result of the operation.
+        /// A UniTask whose result is the result of the operation.
         /// </returns>
-        public static async Task<TResult> ExecuteAsync<TResult>(
+        public static async UniTask<TResult> ExecuteAsync<TResult>(
             this IWriteOperation<TResult> operation,
             IChannelSourceHandle channelSource,
             ICoreSessionHandle session,
@@ -122,7 +123,7 @@ namespace MongoDB.Driver.Core.Operations
             Ensure.IsNotNull(operation, nameof(operation));
             using (var writeBinding = new ChannelSourceReadWriteBinding(channelSource.Fork(), ReadPreference.Primary, session.Fork()))
             {
-                return await operation.ExecuteAsync(writeBinding, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAsync(writeBinding, cancellationToken);
             }
         }
     }

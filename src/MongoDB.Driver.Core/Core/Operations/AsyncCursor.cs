@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -220,11 +221,11 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
-        public async Task CloseAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask CloseAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             try
             {
-                await CloseIfNotAlreadyClosedAsync(cancellationToken).ConfigureAwait(false);
+                await CloseIfNotAlreadyClosedAsync(cancellationToken);
             }
             finally
             {
@@ -290,7 +291,7 @@ namespace MongoDB.Driver.Core.Operations
             return CreateCursorBatch(result);
         }
 
-        private async Task<CursorBatch<TDocument>> ExecuteGetMoreCommandAsync(IChannelHandle channel, CancellationToken cancellationToken)
+        private async UniTask<CursorBatch<TDocument>> ExecuteGetMoreCommandAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateGetMoreCommand();
             var result = await channel.CommandAsync<BsonDocument>(
@@ -305,7 +306,7 @@ namespace MongoDB.Driver.Core.Operations
                 CommandResponseHandling.Return,
                 __getMoreCommandResultSerializer,
                 _messageEncoderSettings,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
 
             return CreateCursorBatch(result);
         }
@@ -324,7 +325,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        private Task<CursorBatch<TDocument>> ExecuteGetMoreProtocolAsync(IChannelHandle channel, CancellationToken cancellationToken)
+        private UniTask<CursorBatch<TDocument>> ExecuteGetMoreProtocolAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var numberToReturn = CalculateGetMoreProtocolNumberToReturn();
 
@@ -358,7 +359,7 @@ namespace MongoDB.Driver.Core.Operations
             ThrowIfKillCursorsCommandFailed(result, channel.ConnectionDescription.ConnectionId);
         }
 
-        private async Task ExecuteKillCursorsCommandAsync(IChannelHandle channel, CancellationToken cancellationToken)
+        private async UniTask ExecuteKillCursorsCommandAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var command = CreateKillCursorsCommand();
             var result = await channel.CommandAsync(
@@ -374,7 +375,7 @@ namespace MongoDB.Driver.Core.Operations
                 BsonDocumentSerializer.Instance,
                 _messageEncoderSettings,
                 cancellationToken)
-                .ConfigureAwait(false);
+                ;
 
             ThrowIfKillCursorsCommandFailed(result, channel.ConnectionDescription.ConnectionId);
         }
@@ -387,7 +388,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        private Task ExecuteKillCursorsProtocolAsync(IChannelHandle channel, CancellationToken cancellationToken)
+        private UniTask ExecuteKillCursorsProtocolAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             return channel.KillCursorsAsync(
                 new[] { _cursorId },
@@ -441,7 +442,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private async Task CloseIfNotAlreadyClosedAsync(CancellationToken cancellationToken)
+        private async UniTask CloseIfNotAlreadyClosedAsync(CancellationToken cancellationToken)
         {
             if (!_closed)
             {
@@ -449,7 +450,7 @@ namespace MongoDB.Driver.Core.Operations
                 {
                     if (_cursorId != 0)
                     {
-                        await KillCursorsAsync(cancellationToken).ConfigureAwait(false);
+                        await KillCursorsAsync(cancellationToken);
                     }
                 }
                 finally
@@ -499,18 +500,18 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private async Task<CursorBatch<TDocument>> GetNextBatchAsync(CancellationToken cancellationToken)
+        private async UniTask<CursorBatch<TDocument>> GetNextBatchAsync(CancellationToken cancellationToken)
         {
             using (EventContext.BeginOperation(_operationId))
-            using (var channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
+            using (var channel = await _channelSource.GetChannelAsync(cancellationToken))
             {
                 if (Feature.FindCommand.IsSupported(channel.ConnectionDescription.ServerVersion))
                 {
-                    return await ExecuteGetMoreCommandAsync(channel, cancellationToken).ConfigureAwait(false);
+                    return await ExecuteGetMoreCommandAsync(channel, cancellationToken);
                 }
                 else
                 {
-                    return await ExecuteGetMoreProtocolAsync(channel, cancellationToken).ConfigureAwait(false);
+                    return await ExecuteGetMoreProtocolAsync(channel, cancellationToken);
                 }
             }
         }
@@ -533,20 +534,20 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private async Task KillCursorsAsync(CancellationToken cancellationToken)
+        private async UniTask KillCursorsAsync(CancellationToken cancellationToken)
         {
             using (EventContext.BeginOperation(_operationId))
             using (EventContext.BeginKillCursors(_collectionNamespace))
             using (var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10)))
-            using (var channel = await _channelSource.GetChannelAsync(cancellationTokenSource.Token).ConfigureAwait(false))
+            using (var channel = await _channelSource.GetChannelAsync(cancellationTokenSource.Token))
             {
                 if (Feature.KillCursorsCommand.IsSupported(channel.ConnectionDescription.ServerVersion))
                 {
-                    await ExecuteKillCursorsCommandAsync(channel, cancellationToken).ConfigureAwait(false);
+                    await ExecuteKillCursorsCommandAsync(channel, cancellationToken);
                 }
                 else
                 {
-                    await ExecuteKillCursorsProtocolAsync(channel, cancellationToken).ConfigureAwait(false);
+                    await ExecuteKillCursorsProtocolAsync(channel, cancellationToken);
                 }
             }
         }
@@ -568,7 +569,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        public async UniTask<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
 
@@ -578,7 +579,7 @@ namespace MongoDB.Driver.Core.Operations
                 return hasMore;
             }
 
-            var batch = await GetNextBatchAsync(cancellationToken).ConfigureAwait(false);
+            var batch = await GetNextBatchAsync(cancellationToken);
             SaveBatch(batch);
             return true;
         }

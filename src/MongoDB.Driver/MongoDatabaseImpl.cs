@@ -19,6 +19,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -109,12 +110,12 @@ namespace MongoDB.Driver
             }
         }
 
-        public override Task<IAsyncCursor<TResult>> AggregateAsync<TResult>(PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask<IAsyncCursor<TResult>> AggregateAsync<TResult>(PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => AggregateAsync(session, pipeline, options, cancellationToken), cancellationToken);
         }
 
-        public override async Task<IAsyncCursor<TResult>> AggregateAsync<TResult>(IClientSessionHandle session, PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        public override async UniTask<IAsyncCursor<TResult>> AggregateAsync<TResult>(IClientSessionHandle session, PipelineDefinition<NoPipelineInput, TResult> pipeline, AggregateOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(session, nameof(session));
             var renderedPipeline = Ensure.IsNotNull(pipeline, nameof(pipeline)).Render(NoPipelineInputSerializer.Instance, _settings.SerializerRegistry);
@@ -125,7 +126,7 @@ namespace MongoDB.Driver
             if (lastStage != null && (lastStageName == "$out" || lastStageName == "$merge"))
             {
                 var aggregateOperation = CreateAggregateToCollectionOperation(renderedPipeline, options);
-                await ExecuteWriteOperationAsync(session, aggregateOperation, cancellationToken).ConfigureAwait(false);
+                await ExecuteWriteOperationAsync(session, aggregateOperation, cancellationToken);
 
                 // we want to delay execution of the find because the user may
                 // not want to iterate the results at all...
@@ -135,12 +136,12 @@ namespace MongoDB.Driver
                     () => forkedSession.Dispose(),
                     ct => ExecuteReadOperation(forkedSession, findOperation, ReadPreference.Primary, ct),
                     ct => ExecuteReadOperationAsync(forkedSession, findOperation, ReadPreference.Primary, ct));
-                return await Task.FromResult<IAsyncCursor<TResult>>(deferredCursor).ConfigureAwait(false);
+                return await UniTask.FromResult<IAsyncCursor<TResult>>(deferredCursor);
             }
             else
             {
                 var aggregateOperation = CreateAggregateOperation(renderedPipeline, options);
-                return await ExecuteReadOperationAsync(session, aggregateOperation, cancellationToken).ConfigureAwait(false);
+                return await ExecuteReadOperationAsync(session, aggregateOperation, cancellationToken);
             }
         }
 
@@ -173,12 +174,12 @@ namespace MongoDB.Driver
             methodInfo.Invoke(this, new object[] { session, name, options, cancellationToken });
         }
 
-        public override Task CreateCollectionAsync(string name, CreateCollectionOptions options, CancellationToken cancellationToken)
+        public override UniTask CreateCollectionAsync(string name, CreateCollectionOptions options, CancellationToken cancellationToken)
         {
             return UsingImplicitSessionAsync(session => CreateCollectionAsync(session, name, options, cancellationToken), cancellationToken);
         }
 
-        public override Task CreateCollectionAsync(IClientSessionHandle session, string name, CreateCollectionOptions options, CancellationToken cancellationToken)
+        public override UniTask CreateCollectionAsync(IClientSessionHandle session, string name, CreateCollectionOptions options, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNullOrEmpty(name, nameof(name));
@@ -197,7 +198,7 @@ namespace MongoDB.Driver
             var genericMethodDefinition = typeof(MongoDatabaseImpl).GetTypeInfo().GetMethod("CreateCollectionHelperAsync", BindingFlags.NonPublic | BindingFlags.Instance);
             var documentType = options.GetType().GetTypeInfo().GetGenericArguments()[0];
             var methodInfo = genericMethodDefinition.MakeGenericMethod(documentType);
-            return (Task)methodInfo.Invoke(this, new object[] { session, name, options, cancellationToken });
+            return (UniTask)methodInfo.Invoke(this, new object[] { session, name, options, cancellationToken });
         }
 
         public override void CreateView<TDocument, TResult>(string viewName, string viewOn, PipelineDefinition<TDocument, TResult> pipeline, CreateViewOptions<TDocument> options = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -216,12 +217,12 @@ namespace MongoDB.Driver
             ExecuteWriteOperation(session, operation, cancellationToken);
         }
 
-        public override Task CreateViewAsync<TDocument, TResult>(string viewName, string viewOn, PipelineDefinition<TDocument, TResult> pipeline, CreateViewOptions<TDocument> options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask CreateViewAsync<TDocument, TResult>(string viewName, string viewOn, PipelineDefinition<TDocument, TResult> pipeline, CreateViewOptions<TDocument> options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => CreateViewAsync(session, viewName, viewOn, pipeline, options, cancellationToken), cancellationToken);
         }
 
-        public override Task CreateViewAsync<TDocument, TResult>(IClientSessionHandle session, string viewName, string viewOn, PipelineDefinition<TDocument, TResult> pipeline, CreateViewOptions<TDocument> options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask CreateViewAsync<TDocument, TResult>(IClientSessionHandle session, string viewName, string viewOn, PipelineDefinition<TDocument, TResult> pipeline, CreateViewOptions<TDocument> options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNull(viewName, nameof(viewName));
@@ -245,12 +246,12 @@ namespace MongoDB.Driver
             ExecuteWriteOperation(session, operation, cancellationToken);
         }
 
-        public override Task DropCollectionAsync(string name, CancellationToken cancellationToken)
+        public override UniTask DropCollectionAsync(string name, CancellationToken cancellationToken)
         {
             return UsingImplicitSessionAsync(session => DropCollectionAsync(session, name, cancellationToken), cancellationToken);
         }
 
-        public override Task DropCollectionAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken)
+        public override UniTask DropCollectionAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNullOrEmpty(name, nameof(name));
@@ -285,17 +286,17 @@ namespace MongoDB.Driver
             return new BatchTransformingAsyncCursor<BsonDocument, string>(cursor, ExtractCollectionNames);
         }
 
-        public override Task<IAsyncCursor<string>> ListCollectionNamesAsync(ListCollectionNamesOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask<IAsyncCursor<string>> ListCollectionNamesAsync(ListCollectionNamesOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => ListCollectionNamesAsync(session, options, cancellationToken), cancellationToken);
         }
 
-        public override async Task<IAsyncCursor<string>> ListCollectionNamesAsync(IClientSessionHandle session, ListCollectionNamesOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async UniTask<IAsyncCursor<string>> ListCollectionNamesAsync(IClientSessionHandle session, ListCollectionNamesOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(session, nameof(session));
             var operation = CreateListCollectionNamesOperation(options);
             var effectiveReadPreference = ReadPreferenceResolver.GetEffectiveReadPreference(session, null, ReadPreference.Primary);
-            var cursor = await ExecuteReadOperationAsync(session, operation, effectiveReadPreference, cancellationToken).ConfigureAwait(false);
+            var cursor = await ExecuteReadOperationAsync(session, operation, effectiveReadPreference, cancellationToken);
             return new BatchTransformingAsyncCursor<BsonDocument, string>(cursor, ExtractCollectionNames);
         }
 
@@ -312,12 +313,12 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, effectiveReadPreference, cancellationToken);
         }
 
-        public override Task<IAsyncCursor<BsonDocument>> ListCollectionsAsync(ListCollectionsOptions options, CancellationToken cancellationToken)
+        public override UniTask<IAsyncCursor<BsonDocument>> ListCollectionsAsync(ListCollectionsOptions options, CancellationToken cancellationToken)
         {
             return UsingImplicitSessionAsync(session => ListCollectionsAsync(session, options, cancellationToken), cancellationToken);
         }
 
-        public override Task<IAsyncCursor<BsonDocument>> ListCollectionsAsync(IClientSessionHandle session, ListCollectionsOptions options, CancellationToken cancellationToken)
+        public override UniTask<IAsyncCursor<BsonDocument>> ListCollectionsAsync(IClientSessionHandle session, ListCollectionsOptions options, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(session, nameof(session));
             var operation = CreateListCollectionsOperation(options);
@@ -341,12 +342,12 @@ namespace MongoDB.Driver
             ExecuteWriteOperation(session, operation, cancellationToken);
         }
 
-        public override Task RenameCollectionAsync(string oldName, string newName, RenameCollectionOptions options, CancellationToken cancellationToken)
+        public override UniTask RenameCollectionAsync(string oldName, string newName, RenameCollectionOptions options, CancellationToken cancellationToken)
         {
             return UsingImplicitSessionAsync(session => RenameCollectionAsync(session, oldName, newName, options, cancellationToken), cancellationToken);
         }
 
-        public override Task RenameCollectionAsync(IClientSessionHandle session, string oldName, string newName, RenameCollectionOptions options, CancellationToken cancellationToken)
+        public override UniTask RenameCollectionAsync(IClientSessionHandle session, string oldName, string newName, RenameCollectionOptions options, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNullOrEmpty(oldName, nameof(oldName));
@@ -372,12 +373,12 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, effectiveReadPreference, cancellationToken);
         }
 
-        public override Task<TResult> RunCommandAsync<TResult>(Command<TResult> command, ReadPreference readPreference = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask<TResult> RunCommandAsync<TResult>(Command<TResult> command, ReadPreference readPreference = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             return UsingImplicitSessionAsync(session => RunCommandAsync(session, command, readPreference, cancellationToken), cancellationToken);
         }
 
-        public override Task<TResult> RunCommandAsync<TResult>(IClientSessionHandle session, Command<TResult> command, ReadPreference readPreference = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask<TResult> RunCommandAsync<TResult>(IClientSessionHandle session, Command<TResult> command, ReadPreference readPreference = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(session, nameof(session));
             Ensure.IsNotNull(command, nameof(command));
@@ -407,7 +408,7 @@ namespace MongoDB.Driver
             return ExecuteReadOperation(session, operation, cancellationToken);
         }
 
-        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public override UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -415,7 +416,7 @@ namespace MongoDB.Driver
             return UsingImplicitSessionAsync(session => WatchAsync(session, pipeline, options, cancellationToken), cancellationToken);
         }
 
-        public override Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public override UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
@@ -544,7 +545,7 @@ namespace MongoDB.Driver
             ExecuteWriteOperation(session, operation, cancellationToken);
         }
 
-        private Task CreateCollectionHelperAsync<TDocument>(IClientSessionHandle session, string name, CreateCollectionOptions<TDocument> options, CancellationToken cancellationToken)
+        private UniTask CreateCollectionHelperAsync<TDocument>(IClientSessionHandle session, string name, CreateCollectionOptions<TDocument> options, CancellationToken cancellationToken)
         {
             options = options ?? new CreateCollectionOptions<TDocument>();
 
@@ -719,17 +720,17 @@ namespace MongoDB.Driver
             }
         }
 
-        private Task<T> ExecuteReadOperationAsync<T>(IClientSessionHandle session, IReadOperation<T> operation, CancellationToken cancellationToken)
+        private UniTask<T> ExecuteReadOperationAsync<T>(IClientSessionHandle session, IReadOperation<T> operation, CancellationToken cancellationToken)
         {
             var readPreference = ReadPreferenceResolver.GetEffectiveReadPreference(session, null, _settings.ReadPreference);
             return ExecuteReadOperationAsync(session, operation, readPreference, cancellationToken);
         }
 
-        private async Task<T> ExecuteReadOperationAsync<T>(IClientSessionHandle session, IReadOperation<T> operation, ReadPreference readPreference, CancellationToken cancellationToken)
+        private async UniTask<T> ExecuteReadOperationAsync<T>(IClientSessionHandle session, IReadOperation<T> operation, ReadPreference readPreference, CancellationToken cancellationToken)
         {
             using (var binding = CreateReadBinding(session, readPreference))
             {
-                return await _operationExecutor.ExecuteReadOperationAsync(binding, operation, cancellationToken).ConfigureAwait(false);
+                return await _operationExecutor.ExecuteReadOperationAsync(binding, operation, cancellationToken);
             }
         }
 
@@ -741,11 +742,11 @@ namespace MongoDB.Driver
             }
         }
 
-        private async Task<T> ExecuteWriteOperationAsync<T>(IClientSessionHandle session, IWriteOperation<T> operation, CancellationToken cancellationToken)
+        private async UniTask<T> ExecuteWriteOperationAsync<T>(IClientSessionHandle session, IWriteOperation<T> operation, CancellationToken cancellationToken)
         {
             using (var binding = CreateReadWriteBinding(session))
             {
-                return await _operationExecutor.ExecuteWriteOperationAsync(binding, operation, cancellationToken).ConfigureAwait(false);
+                return await _operationExecutor.ExecuteWriteOperationAsync(binding, operation, cancellationToken);
             }
         }
 
@@ -775,19 +776,19 @@ namespace MongoDB.Driver
             }
         }
 
-        private async Task UsingImplicitSessionAsync(Func<IClientSessionHandle, Task> funcAsync, CancellationToken cancellationToken)
+        private async UniTask UsingImplicitSessionAsync(Func<IClientSessionHandle, UniTask> funcAsync, CancellationToken cancellationToken)
         {
-            using (var session = await _operationExecutor.StartImplicitSessionAsync(cancellationToken).ConfigureAwait(false))
+            using (var session = await _operationExecutor.StartImplicitSessionAsync(cancellationToken))
             {
-                await funcAsync(session).ConfigureAwait(false);
+                await funcAsync(session);
             }
         }
 
-        private async Task<TResult> UsingImplicitSessionAsync<TResult>(Func<IClientSessionHandle, Task<TResult>> funcAsync, CancellationToken cancellationToken)
+        private async UniTask<TResult> UsingImplicitSessionAsync<TResult>(Func<IClientSessionHandle, UniTask<TResult>> funcAsync, CancellationToken cancellationToken)
         {
-            using (var session = await _operationExecutor.StartImplicitSessionAsync(cancellationToken).ConfigureAwait(false))
+            using (var session = await _operationExecutor.StartImplicitSessionAsync(cancellationToken))
             {
-                return await funcAsync(session).ConfigureAwait(false);
+                return await funcAsync(session);
             }
         }
     }

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Serializers;
@@ -125,16 +126,16 @@ namespace MongoDB.Driver.Core.WireProtocol
             }
         }
 
-        public async Task<WriteConcernResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
+        public async UniTask<WriteConcernResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
         {
             QueryMessage getLastErrorMessage;
             var messages = CreateMessages(connection, out getLastErrorMessage);
 
-            await connection.SendMessagesAsync(messages, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+            await connection.SendMessagesAsync(messages, _messageEncoderSettings, cancellationToken);
             if (getLastErrorMessage != null && getLastErrorMessage.WasSent)
             {
                 var encoderSelector = new ReplyMessageEncoderSelector<BsonDocument>(BsonDocumentSerializer.Instance);
-                var reply = await connection.ReceiveMessageAsync(getLastErrorMessage.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+                var reply = await connection.ReceiveMessageAsync(getLastErrorMessage.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken);
                 return ProcessReply(connection.ConnectionId, getLastErrorMessage.Query, (ReplyMessage<BsonDocument>)reply);
             }
             else

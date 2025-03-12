@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Clusters;
 
 namespace MongoDB.Driver.Core.Bindings
@@ -60,7 +61,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A channel source.</returns>
-        Task<IChannelSourceHandle> GetReadChannelSourceAsync(CancellationToken cancellationToken);
+        UniTask<IChannelSourceHandle> GetReadChannelSourceAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -80,7 +81,7 @@ namespace MongoDB.Driver.Core.Bindings
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A channel source.</returns>
-        Task<IChannelSourceHandle> GetWriteChannelSourceAsync(CancellationToken cancellationToken);
+        UniTask<IChannelSourceHandle> GetWriteChannelSourceAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>

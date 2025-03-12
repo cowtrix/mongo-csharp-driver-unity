@@ -15,6 +15,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Operations;
 
@@ -34,9 +35,9 @@ namespace MongoDB.Driver
             return operation.Execute(binding, cancellationToken);
         }
 
-        public async Task<TResult> ExecuteReadOperationAsync<TResult>(IReadBinding binding, IReadOperation<TResult> operation, CancellationToken cancellationToken)
+        public async UniTask<TResult> ExecuteReadOperationAsync<TResult>(IReadBinding binding, IReadOperation<TResult> operation, CancellationToken cancellationToken)
         {
-            return await operation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
+            return await operation.ExecuteAsync(binding, cancellationToken);
         }
 
         public TResult ExecuteWriteOperation<TResult>(IWriteBinding binding, IWriteOperation<TResult> operation, CancellationToken cancellationToken)
@@ -44,9 +45,9 @@ namespace MongoDB.Driver
             return operation.Execute(binding, cancellationToken);
         }
 
-        public async Task<TResult> ExecuteWriteOperationAsync<TResult>(IWriteBinding binding, IWriteOperation<TResult> operation, CancellationToken cancellationToken)
+        public async UniTask<TResult> ExecuteWriteOperationAsync<TResult>(IWriteBinding binding, IWriteOperation<TResult> operation, CancellationToken cancellationToken)
         {
-            return await operation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
+            return await operation.ExecuteAsync(binding, cancellationToken);
         }
 
         public IClientSessionHandle StartImplicitSession(CancellationToken cancellationToken)
@@ -54,7 +55,7 @@ namespace MongoDB.Driver
             return _client.StartImplicitSession(cancellationToken);
         }
 
-        public Task<IClientSessionHandle> StartImplicitSessionAsync(CancellationToken cancellationToken)
+        public UniTask<IClientSessionHandle> StartImplicitSessionAsync(CancellationToken cancellationToken)
         {
             return _client.StartImplicitSessionAsync(cancellationToken);
         }

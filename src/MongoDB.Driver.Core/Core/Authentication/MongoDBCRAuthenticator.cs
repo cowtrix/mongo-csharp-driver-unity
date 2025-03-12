@@ -19,6 +19,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Serializers;
@@ -88,7 +89,7 @@ namespace MongoDB.Driver.Core.Authentication
         }
 
         /// <inheritdoc/>
-        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public async UniTask AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -96,9 +97,9 @@ namespace MongoDB.Driver.Core.Authentication
             try
             {
                 var getNonceProtocol = CreateGetNonceProtocol();
-                var getNonceReply = await getNonceProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                var getNonceReply = await getNonceProtocol.ExecuteAsync(connection, cancellationToken);
                 var authenticateProtocol =  CreateAuthenticateProtocol(getNonceReply);
-                await authenticateProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                await authenticateProtocol.ExecuteAsync(connection, cancellationToken);
             }
             catch (MongoCommandException ex)
             {

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -104,7 +105,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             return supportedProtocol.Execute(connection, cancellationToken);
         }
 
-        public Task<TCommandResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
+        public UniTask<TCommandResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
         {
             var supportedProtocol = CreateSupportedWireProtocol(connection);
             return supportedProtocol.ExecuteAsync(connection, cancellationToken);

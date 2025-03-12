@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
@@ -101,16 +102,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc />
-        public virtual async Task<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public virtual async UniTask<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
-            using (var channelSource = await binding.GetReadChannelSourceAsync(cancellationToken).ConfigureAwait(false))
-            using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
+            using (var channelSource = await binding.GetReadChannelSourceAsync(cancellationToken))
+            using (var channel = await channelSource.GetChannelAsync(cancellationToken))
             using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
                 var operation = CreateOperation();
-                return await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAsync(channelBinding, cancellationToken);
             }
         }
 
@@ -227,11 +228,11 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc />
-        public override async Task<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public override async UniTask<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             try
             {
-                return await base.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
+                return await base.ExecuteAsync(binding, cancellationToken);
             }
             catch (MongoException exception) when (ShouldReplaceTransientTransactionErrorWithUnknownTransactionCommitResult(exception))
             {

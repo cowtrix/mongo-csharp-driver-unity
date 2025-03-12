@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -105,12 +106,12 @@ namespace MongoDB.Driver.Core.WireProtocol
             return ProcessReply(connection.ConnectionId, (ReplyMessage<TDocument>)reply);
         }
 
-        public async Task<CursorBatch<TDocument>> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
+        public async UniTask<CursorBatch<TDocument>> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
         {
             var message = CreateMessage();
-            await connection.SendMessageAsync(message, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+            await connection.SendMessageAsync(message, _messageEncoderSettings, cancellationToken);
             var encoderSelector = new ReplyMessageEncoderSelector<TDocument>(_serializer);
-            var reply = await connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+            var reply = await connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken);
             return ProcessReply(connection.ConnectionId, (ReplyMessage<TDocument>)reply);
         }
 

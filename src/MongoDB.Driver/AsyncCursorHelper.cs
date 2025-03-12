@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Threading;
@@ -22,11 +23,11 @@ namespace MongoDB.Driver
 {
     internal static class AsyncCursorHelper
     {
-        public async static Task<bool> AnyAsync<T>(Task<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
+        public async static UniTask<bool> AnyAsync<T>(UniTask<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
         {
-            using (var cursor = await cursorTask.ConfigureAwait(false))
+            using (var cursor = await cursorTask)
             {
-                while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(cancellationToken))
                 {
                     var current = cursor.Current;
                     if (current.Any())
@@ -39,11 +40,11 @@ namespace MongoDB.Driver
             }
         }
 
-        public async static Task<T> FirstAsync<T>(Task<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
+        public async static UniTask<T> FirstAsync<T>(UniTask<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
         {
-            using (var cursor = await cursorTask.ConfigureAwait(false))
+            using (var cursor = await cursorTask)
             {
-                while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(cancellationToken))
                 {
                     var current = cursor.Current;
                     if (current.Any())
@@ -56,11 +57,11 @@ namespace MongoDB.Driver
             }
         }
 
-        public async static Task<T> FirstOrDefaultAsync<T>(Task<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
+        public async static UniTask<T> FirstOrDefaultAsync<T>(UniTask<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
         {
-            using (var cursor = await cursorTask.ConfigureAwait(false))
+            using (var cursor = await cursorTask)
             {
-                while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(cancellationToken))
                 {
                     var current = cursor.Current;
                     if (current.Any())
@@ -73,11 +74,11 @@ namespace MongoDB.Driver
             }
         }
 
-        public async static Task<T> SingleAsync<T>(Task<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
+        public async static UniTask<T> SingleAsync<T>(UniTask<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
         {
-            using (var cursor = await cursorTask.ConfigureAwait(false))
+            using (var cursor = await cursorTask)
             {
-                while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(cancellationToken))
                 {
                     var current = cursor.Current;
                     if (current.Any())
@@ -90,11 +91,11 @@ namespace MongoDB.Driver
             }
         }
 
-        public async static Task<T> SingleOrDefaultAsync<T>(Task<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
+        public async static UniTask<T> SingleOrDefaultAsync<T>(UniTask<IAsyncCursor<T>> cursorTask, CancellationToken cancellationToken)
         {
-            using (var cursor = await cursorTask.ConfigureAwait(false))
+            using (var cursor = await cursorTask)
             {
-                while (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await cursor.MoveNextAsync(cancellationToken))
                 {
                     var current = cursor.Current;
                     if (current.Any())

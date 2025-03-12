@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Configuration;
@@ -84,8 +85,8 @@ namespace MongoDB.Driver.Core.Clusters
         /// </summary>
         /// <param name="selector">The server selector.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task representing the operation. The result of the Task is the selected server.</returns>
-        Task<IServer> SelectServerAsync(IServerSelector selector, CancellationToken cancellationToken);
+        /// <returns>A UniTask representing the operation. The result of the UniTask is the selected server.</returns>
+        UniTask<IServer> SelectServerAsync(IServerSelector selector, CancellationToken cancellationToken);
 
         /// <summary>
         /// Starts a session.

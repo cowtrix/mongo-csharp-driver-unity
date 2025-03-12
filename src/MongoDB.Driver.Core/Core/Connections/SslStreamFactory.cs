@@ -21,6 +21,7 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Misc;
 
@@ -61,15 +62,15 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        public async Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
+        public async UniTask<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-            var stream = await _wrapped.CreateStreamAsync(endPoint, cancellationToken).ConfigureAwait(false);
+            var stream = await _wrapped.CreateStreamAsync(endPoint, cancellationToken);
             try
             {
                 var sslStream = CreateSslStream(stream);
                 var targetHost = GetTargetHost(endPoint);
                 var clientCertificates = new X509CertificateCollection(_settings.ClientCertificates.ToArray());
-                await sslStream.AuthenticateAsClientAsync(targetHost, clientCertificates, _settings.EnabledSslProtocols, _settings.CheckCertificateRevocation).ConfigureAwait(false);
+                await sslStream.AuthenticateAsClientAsync(targetHost, clientCertificates, _settings.EnabledSslProtocols, _settings.CheckCertificateRevocation);
                 return sslStream;
             }
             catch

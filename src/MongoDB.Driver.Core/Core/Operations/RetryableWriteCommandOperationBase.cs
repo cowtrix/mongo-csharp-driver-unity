@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Serializers;
@@ -141,16 +142,16 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc />
-        public virtual async Task<BsonDocument> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
+        public virtual async UniTask<BsonDocument> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
         {
-            using (var context = await RetryableWriteContext.CreateAsync(binding, _retryRequested, cancellationToken).ConfigureAwait(false))
+            using (var context = await RetryableWriteContext.CreateAsync(binding, _retryRequested, cancellationToken))
             {
                 return Execute(context, cancellationToken);
             }
         }
 
         /// <inheritdoc />
-        public virtual Task<BsonDocument> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
+        public virtual UniTask<BsonDocument> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             return RetryableWriteOperationExecutor.ExecuteAsync(this, context, cancellationToken);
         }
@@ -176,7 +177,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc />
-        public Task<BsonDocument> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken)
+        public UniTask<BsonDocument> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken)
         {
             var args = GetCommandArgs(context, attempt, transactionNumber);
 

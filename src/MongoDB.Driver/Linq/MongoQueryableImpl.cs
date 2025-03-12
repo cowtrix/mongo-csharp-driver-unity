@@ -19,6 +19,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Linq
@@ -78,7 +79,7 @@ namespace MongoDB.Driver.Linq
             return (IAsyncCursor<TOutput>)mongoQueryProvider.ExecuteModel(model);
         }
 
-        public Task<IAsyncCursor<TOutput>> ToCursorAsync(CancellationToken cancellationToken)
+        public UniTask<IAsyncCursor<TOutput>> ToCursorAsync(CancellationToken cancellationToken)
         {
             return _queryProvider.ExecuteAsync<IAsyncCursor<TOutput>>(_expression, cancellationToken);
         }

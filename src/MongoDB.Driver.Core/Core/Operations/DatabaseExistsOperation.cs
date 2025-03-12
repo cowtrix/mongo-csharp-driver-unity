@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
@@ -92,12 +93,12 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<bool> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async UniTask<bool> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
             var operation = CreateOperation();
-            var result = await operation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
-            var list = await result.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var result = await operation.ExecuteAsync(binding, cancellationToken);
+            var list = await result.ToListAsync(cancellationToken);
             return list.Any(x => x["name"] == _databaseNamespace.DatabaseName);
         }
 

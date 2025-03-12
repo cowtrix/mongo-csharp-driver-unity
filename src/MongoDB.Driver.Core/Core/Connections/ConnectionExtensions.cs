@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol.Messages;
@@ -38,7 +39,7 @@ namespace MongoDB.Driver.Core.Connections
             connection.SendMessages(new[] { message }, messageEncoderSettings, cancellationToken);
         }
 
-        public static Task SendMessageAsync(this IConnection connection, RequestMessage message, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
+        public static UniTask SendMessageAsync(this IConnection connection, RequestMessage message, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             return connection.SendMessagesAsync(new[] { message }, messageEncoderSettings, cancellationToken);

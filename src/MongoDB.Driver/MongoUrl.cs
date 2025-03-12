@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Configuration;
 
@@ -666,7 +667,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A resolved MongoURL.</returns>
-        public Task<MongoUrl> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask<MongoUrl> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return ResolveAsync(resolveHosts: true);
         }
@@ -678,7 +679,7 @@ namespace MongoDB.Driver
         /// <param name="resolveHosts">Whether to resolve hosts.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A resolved MongoURL.</returns>
-        public async Task<MongoUrl> ResolveAsync(bool resolveHosts, CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask<MongoUrl> ResolveAsync(bool resolveHosts, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (_isResolved)
             {
@@ -687,7 +688,7 @@ namespace MongoDB.Driver
 
             var connectionString = new ConnectionString(_originalUrl);
 
-            var resolved = await connectionString.ResolveAsync(resolveHosts, cancellationToken).ConfigureAwait(false);
+            var resolved = await connectionString.ResolveAsync(resolveHosts, cancellationToken);
 
             return new MongoUrl(resolved.ToString(), isResolved: true);
         }

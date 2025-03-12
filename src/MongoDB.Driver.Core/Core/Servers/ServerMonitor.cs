@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Connections;
@@ -87,7 +88,7 @@ namespace MongoDB.Driver.Core.Servers
         {
             if (_state.TryChange(State.Initial, State.Open))
             {
-                MonitorServerAsync().ConfigureAwait(false);
+                MonitorServerAsync();
             }
         }
 
@@ -107,7 +108,7 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        private async Task MonitorServerAsync()
+        private async UniTask MonitorServerAsync()
         {
             var metronome = new Metronome(_heartbeatInterval);
             var heartbeatCancellationToken = _cancellationTokenSource.Token;
@@ -117,7 +118,7 @@ namespace MongoDB.Driver.Core.Servers
                 {
                     try
                     {
-                        await HeartbeatAsync(heartbeatCancellationToken).ConfigureAwait(false);
+                        await HeartbeatAsync(heartbeatCancellationToken);
                     }
                     catch (OperationCanceledException) when (heartbeatCancellationToken.IsCancellationRequested)
                     {
@@ -162,7 +163,7 @@ namespace MongoDB.Driver.Core.Servers
                     {
                         oldHeartbeatDelay.Dispose();
                     }
-                    await newHeartbeatDelay.Task.ConfigureAwait(false);
+                    await newHeartbeatDelay.UniTask;
                 }
                 catch
                 {
@@ -171,7 +172,7 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        private async Task<bool> HeartbeatAsync(CancellationToken cancellationToken)
+        private async UniTask<bool> HeartbeatAsync(CancellationToken cancellationToken)
         {
             const int maxRetryCount = 2;
             HeartbeatInfo heartbeatInfo = null;
@@ -186,10 +187,10 @@ namespace MongoDB.Driver.Core.Servers
                         connection = _connectionFactory.CreateConnection(_serverId, _endPoint);
                         // if we are cancelling, it's because the server has
                         // been shut down and we really don't need to wait.
-                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                        await connection.OpenAsync(cancellationToken);
                     }
 
-                    heartbeatInfo = await GetHeartbeatInfoAsync(connection, cancellationToken).ConfigureAwait(false);
+                    heartbeatInfo = await GetHeartbeatInfoAsync(connection, cancellationToken);
                     heartbeatException = null;
 
                     _connection = connection;
@@ -245,7 +246,7 @@ namespace MongoDB.Driver.Core.Servers
             return true;
         }
 
-        private async Task<HeartbeatInfo> GetHeartbeatInfoAsync(IConnection connection, CancellationToken cancellationToken)
+        private async UniTask<HeartbeatInfo> GetHeartbeatInfoAsync(IConnection connection, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (_heartbeatStartedEventHandler != null)
@@ -263,7 +264,7 @@ namespace MongoDB.Driver.Core.Servers
                     null);
 
                 var stopwatch = Stopwatch.StartNew();
-                var isMasterResultDocument = await isMasterCommand.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                var isMasterResultDocument = await isMasterCommand.ExecuteAsync(connection, cancellationToken);
                 stopwatch.Stop();
                 var isMasterResult = new IsMasterResult(isMasterResultDocument);
 
@@ -274,7 +275,7 @@ namespace MongoDB.Driver.Core.Servers
                     BsonDocumentSerializer.Instance,
                     null);
 
-                var buildInfoResultRocument = await buildInfoCommand.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                var buildInfoResultRocument = await buildInfoCommand.ExecuteAsync(connection, cancellationToken);
                 var buildInfoResult = new BuildInfoResult(buildInfoResultRocument);
 
                 if (_heartbeatSucceededEventHandler != null)

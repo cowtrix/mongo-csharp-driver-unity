@@ -16,6 +16,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Authentication;
@@ -68,24 +69,24 @@ namespace MongoDB.Driver.Core.Connections
             return description;
         }
 
-        public async Task<ConnectionDescription> InitializeConnectionAsync(IConnection connection, CancellationToken cancellationToken)
+        public async UniTask<ConnectionDescription> InitializeConnectionAsync(IConnection connection, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             var isMasterCommand = CreateInitialIsMasterCommand(connection.Settings.Authenticators);
             var isMasterProtocol = IsMasterHelper.CreateProtocol(isMasterCommand);
-            var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
+            var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken);
 
             var buildInfoProtocol = CreateBuildInfoProtocol();
-            var buildInfoResult = new BuildInfoResult(await buildInfoProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false));
+            var buildInfoResult = new BuildInfoResult(await buildInfoProtocol.ExecuteAsync(connection, cancellationToken));
 
             var description = new ConnectionDescription(connection.ConnectionId, isMasterResult, buildInfoResult);
 
-            await AuthenticationHelper.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+            await AuthenticationHelper.AuthenticateAsync(connection, description, cancellationToken);
 
             try
             {
                 var getLastErrorProtocol = CreateGetLastErrorProtocol();
-                var getLastErrorResult = await getLastErrorProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                var getLastErrorResult = await getLastErrorProtocol.ExecuteAsync(connection, cancellationToken);
 
                 description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
             }

@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Bindings;
@@ -144,7 +145,7 @@ namespace MongoDB.Driver.Core.Operations
             return CreateResultOrThrow(context.Channel, result, exception);
         }
 
-        public async Task<WriteConcernResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
+        public async UniTask<WriteConcernResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
 
@@ -153,7 +154,7 @@ namespace MongoDB.Driver.Core.Operations
             MongoBulkWriteOperationException exception = null;
             try
             {
-                result = await operation.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+                result = await operation.ExecuteAsync(context, cancellationToken);
             }
             catch (MongoBulkWriteOperationException ex)
             {

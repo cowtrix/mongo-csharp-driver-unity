@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.WireProtocol.Messages.Encoders;
@@ -105,12 +106,12 @@ namespace MongoDB.Driver.Core.Operations
             return helper.GetFinalResultOrThrow();
         }
 
-        public async Task<BulkWriteOperationResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
+        public async UniTask<BulkWriteOperationResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             var helper = new BatchHelper(this, context.Channel);
             foreach (var batch in helper.GetBatches())
             {
-                batch.Result = await EmulateSingleRequestAsync(context.Channel, batch.Request, batch.OriginalIndex, cancellationToken).ConfigureAwait(false);
+                batch.Result = await EmulateSingleRequestAsync(context.Channel, batch.Request, batch.OriginalIndex, cancellationToken);
             }
             return helper.GetFinalResultOrThrow();
         }
@@ -118,7 +119,7 @@ namespace MongoDB.Driver.Core.Operations
         // protected methods
         protected abstract WriteConcernResult ExecuteProtocol(IChannelHandle channel, TWriteRequest request, CancellationToken cancellationToken);
 
-        protected abstract Task<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, TWriteRequest request, CancellationToken cancellationToken);
+        protected abstract UniTask<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, TWriteRequest request, CancellationToken cancellationToken);
 
         // private methods
         private BulkWriteBatchResult EmulateSingleRequest(IChannelHandle channel, TWriteRequest request, int originalIndex, CancellationToken cancellationToken)
@@ -138,13 +139,13 @@ namespace MongoDB.Driver.Core.Operations
             return CreateSingleRequestResult(request, originalIndex, writeConcernResult, writeConcernException);
         }
 
-        private async Task<BulkWriteBatchResult> EmulateSingleRequestAsync(IChannelHandle channel, TWriteRequest request, int originalIndex, CancellationToken cancellationToken)
+        private async UniTask<BulkWriteBatchResult> EmulateSingleRequestAsync(IChannelHandle channel, TWriteRequest request, int originalIndex, CancellationToken cancellationToken)
         {
             WriteConcernResult writeConcernResult = null;
             MongoWriteConcernException writeConcernException = null;
             try
             {
-                writeConcernResult = await ExecuteProtocolAsync(channel, request, cancellationToken).ConfigureAwait(false);
+                writeConcernResult = await ExecuteProtocolAsync(channel, request, cancellationToken);
             }
             catch (MongoWriteConcernException ex)
             {

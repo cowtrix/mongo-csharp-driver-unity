@@ -20,6 +20,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -130,11 +131,11 @@ namespace MongoDB.Driver.Core.WireProtocol
             }
         }
 
-        public async Task<TCommandResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
+        public async UniTask<TCommandResult> ExecuteAsync(IConnection connection, CancellationToken cancellationToken)
         {
             bool messageContainsSessionId;
             var message = CreateMessage(connection.Description, out messageContainsSessionId);
-            await connection.SendMessageAsync(message, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+            await connection.SendMessageAsync(message, _messageEncoderSettings, cancellationToken);
             if (messageContainsSessionId)
             {
                 _session.WasUsed();
@@ -147,7 +148,7 @@ namespace MongoDB.Driver.Core.WireProtocol
                     return default(TCommandResult);
                 default:
                     var encoderSelector = new ReplyMessageEncoderSelector<RawBsonDocument>(RawBsonDocumentSerializer.Instance);
-                    var reply = await connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken).ConfigureAwait(false);
+                    var reply = await connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken);
                     return ProcessReply(connection.ConnectionId, (ReplyMessage<RawBsonDocument>)reply);
             }
         }
@@ -220,7 +221,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         private void IgnoreResponse(IConnection connection, QueryMessage message, CancellationToken cancellationToken)
         {
             var encoderSelector = new ReplyMessageEncoderSelector<IgnoredReply>(IgnoredReplySerializer.Instance);
-            connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken).IgnoreExceptions();
+            connection.ReceiveMessageAsync(message.RequestId, encoderSelector, _messageEncoderSettings, cancellationToken);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2202:Do not dispose objects multiple times")]

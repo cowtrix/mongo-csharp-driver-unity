@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Events;
@@ -245,22 +246,22 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<WriteConcernResult>> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
+        public async UniTask<IEnumerable<WriteConcernResult>> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
             using (EventContext.BeginOperation())
-            using (var context = await RetryableWriteContext.CreateAsync(binding, false, cancellationToken).ConfigureAwait(false))
+            using (var context = await RetryableWriteContext.CreateAsync(binding, false, cancellationToken))
             {
                 if (Feature.WriteCommands.IsSupported(context.Channel.ConnectionDescription.ServerVersion) && _writeConcern.IsAcknowledged)
                 {
                     var emulator = CreateEmulator();
-                    var result = await emulator.ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+                    var result = await emulator.ExecuteAsync(context, cancellationToken);
                     return new[] { result };
                 }
                 else
                 {
-                    return await InsertBatchesAsync(context.Channel, cancellationToken).ConfigureAwait(false);
+                    return await InsertBatchesAsync(context.Channel, cancellationToken);
                 }
             }
         }
@@ -295,7 +296,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        private Task<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, Batch batch, CancellationToken cancellationToken)
+        private UniTask<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, Batch batch, CancellationToken cancellationToken)
         {
             return channel.InsertAsync<TDocument>(
                 _collectionNamespace,
@@ -333,7 +334,7 @@ namespace MongoDB.Driver.Core.Operations
             return helper.CreateFinalResultOrThrow();
         }
 
-        private async Task<IEnumerable<WriteConcernResult>> InsertBatchesAsync(IChannelHandle channel, CancellationToken cancellationToken)
+        private async UniTask<IEnumerable<WriteConcernResult>> InsertBatchesAsync(IChannelHandle channel, CancellationToken cancellationToken)
         {
             var helper = new BatchHelper(_documentSource, _writeConcern, _continueOnError);
 
@@ -341,7 +342,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 try
                 {
-                    batch.Result = await ExecuteProtocolAsync(channel, batch, cancellationToken).ConfigureAwait(false);
+                    batch.Result = await ExecuteProtocolAsync(channel, batch, cancellationToken);
                 }
                 catch (MongoWriteConcernException ex)
                 {

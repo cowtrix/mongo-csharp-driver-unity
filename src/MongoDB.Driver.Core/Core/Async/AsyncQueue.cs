@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace MongoDB.Driver.Core.Async
         // fields
         private readonly object _lock = new object();
         private readonly Queue<T> _queue = new Queue<T>();
-        private readonly Queue<TaskCompletionSource<T>> _awaiters = new Queue<TaskCompletionSource<T>>();
+        private readonly Queue<UniTaskCompletionSource<T>> _awaiters = new Queue<UniTaskCompletionSource<T>>();
 
         // properties
         public int Count
@@ -53,9 +54,9 @@ namespace MongoDB.Driver.Core.Async
             }
         }
 
-        public async Task<T> DequeueAsync(CancellationToken cancellationToken)
+        public async UniTask<T> DequeueAsync(CancellationToken cancellationToken)
         {
-            TaskCompletionSource<T> awaiter;
+            UniTaskCompletionSource<T> awaiter;
             lock (_lock)
             {
                 if (_queue.Count > 0)
@@ -64,20 +65,20 @@ namespace MongoDB.Driver.Core.Async
                 }
                 else
                 {
-                    awaiter = new TaskCompletionSource<T>();
+                    awaiter = new UniTaskCompletionSource<T>();
                     _awaiters.Enqueue(awaiter);
                 }
             }
 
             using (cancellationToken.Register(() => awaiter.TrySetCanceled(), useSynchronizationContext: false))
             {
-                return await awaiter.Task.ConfigureAwait(false);
+                return await awaiter.Task;
             }
         }
 
         public void Enqueue(T item)
         {
-            TaskCompletionSource<T> awaiter = null;
+            UniTaskCompletionSource<T> awaiter = null;
             lock (_lock)
             {
                 if (_awaiters.Count > 0)

@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -379,7 +380,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        private Task<CursorBatch<TDocument>> ExecuteProtocolAsync(IChannelHandle channel, BsonDocument wrappedQuery, bool slaveOk, CancellationToken cancellationToken)
+        private UniTask<CursorBatch<TDocument>> ExecuteProtocolAsync(IChannelHandle channel, BsonDocument wrappedQuery, bool slaveOk, CancellationToken cancellationToken)
         {
             var firstBatchSize = QueryHelper.CalculateFirstBatchSize(_limit, _firstBatchSize ?? _batchSize);
 
@@ -467,18 +468,18 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<TDocument>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async UniTask<IAsyncCursor<TDocument>> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
-            using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested: false, cancellationToken).ConfigureAwait(false))
+            using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested: false, cancellationToken))
             {
-                return await ExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+                return await ExecuteAsync(context, cancellationToken);
             }
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncCursor<TDocument>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
+        public async UniTask<IAsyncCursor<TDocument>> ExecuteAsync(RetryableReadContext context, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(context, nameof(context));
 
@@ -490,7 +491,7 @@ namespace MongoDB.Driver.Core.Operations
                 var wrappedQuery = CreateWrappedQuery(serverDescription.Type, readPreference);
                 var slaveOk = readPreference != null && readPreference.ReadPreferenceMode != ReadPreferenceMode.Primary;
 
-                var batch = await ExecuteProtocolAsync(context.Channel, wrappedQuery, slaveOk, cancellationToken).ConfigureAwait(false);
+                var batch = await ExecuteProtocolAsync(context.Channel, wrappedQuery, slaveOk, cancellationToken);
                 return CreateCursor(context.ChannelSource, wrappedQuery, batch);
             }
         }
@@ -566,10 +567,10 @@ namespace MongoDB.Driver.Core.Operations
                 return documents.Single();
             }
 
-            public async Task<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+            public async UniTask<BsonDocument> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
             {
-                var cursor = await _explainOperation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
-                var documents = await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
+                var cursor = await _explainOperation.ExecuteAsync(binding, cancellationToken);
+                var documents = await cursor.ToListAsync(cancellationToken);
                 return documents.Single();
             }
         }

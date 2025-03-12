@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver
@@ -57,10 +58,10 @@ namespace MongoDB.Driver
             return true;
         }
 
-        public Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        public UniTask<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            return Task.FromResult(MoveNext(cancellationToken));
+            return UniTask.FromResult(MoveNext(cancellationToken));
         }
 
         public void Dispose()

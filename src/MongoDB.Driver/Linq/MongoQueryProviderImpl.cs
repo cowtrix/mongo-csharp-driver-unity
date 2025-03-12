@@ -19,6 +19,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Linq.Processors;
@@ -89,7 +90,7 @@ namespace MongoDB.Driver.Linq
             }
         }
 
-        public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default(CancellationToken))
         {
             var executionPlan = ExecutionPlanBuilder.BuildAsyncPlan(
                 Expression.Constant(this),
@@ -97,7 +98,7 @@ namespace MongoDB.Driver.Linq
                 Expression.Constant(cancellationToken));
 
             var lambda = Expression.Lambda(executionPlan);
-            return (Task<TResult>)lambda.Compile().DynamicInvoke(null);
+            return (UniTask<TResult>)lambda.Compile().DynamicInvoke(null);
         }
 
         public QueryableExecutionModel GetExecutionModel(Expression expression)
@@ -110,7 +111,7 @@ namespace MongoDB.Driver.Linq
             return model.Execute(_collection, _options);
         }
 
-        private Task ExecuteModelAsync(QueryableExecutionModel model, CancellationToken cancellationToken)
+        private UniTask ExecuteModelAsync(QueryableExecutionModel model, CancellationToken cancellationToken)
         {
             return model.ExecuteAsync(_collection, _options, cancellationToken);
         }

@@ -13,14 +13,10 @@
 * limitations under the License.
 */
 
-using System;
-using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -42,7 +38,7 @@ namespace MongoDB.Driver.Core.Connections
         /// </summary>
         /// <param name="endPoint">The end point.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the Stream.</returns>
-        Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken);
+        /// <returns>A UniTask whose result is the Stream.</returns>
+        UniTask<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken);
     }
 }

@@ -20,6 +20,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.WireProtocol.Messages;
@@ -84,8 +85,8 @@ namespace MongoDB.Driver.Core.Connections
         /// Opens the connection.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task OpenAsync(CancellationToken cancellationToken);
+        /// <returns>A UniTask.</returns>
+        UniTask OpenAsync(CancellationToken cancellationToken);
 
         /// <summary>
         /// Receives a message.
@@ -107,9 +108,9 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is the response message.
+        /// A UniTask whose result is the response message.
         /// </returns>
-        Task<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken);
+        UniTask<ResponseMessage> ReceiveMessageAsync(int responseTo, IMessageEncoderSelector encoderSelector, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken);
 
         /// <summary>
         /// Sends the messages.
@@ -125,8 +126,8 @@ namespace MongoDB.Driver.Core.Connections
         /// <param name="messages">The messages.</param>
         /// <param name="messageEncoderSettings">The message encoder settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken);
+        /// <returns>A UniTask.</returns>
+        UniTask SendMessagesAsync(IEnumerable<RequestMessage> messages, MessageEncoderSettings messageEncoderSettings, CancellationToken cancellationToken);
     }
 
     /// <summary>

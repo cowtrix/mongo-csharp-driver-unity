@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver
@@ -80,10 +81,10 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        public async UniTask<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
-            while (await _wrapped.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+            while (await _wrapped.MoveNextAsync(cancellationToken))
             {
                 _current = _transformer(_wrapped.Current).ToList();
                 if (_current.Count > 0)

@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Authentication;
@@ -77,14 +78,14 @@ namespace MongoDB.Driver.Core.Connections
             }
         }
 
-        internal static async Task<IsMasterResult> GetResultAsync(
+        internal static async UniTask<IsMasterResult> GetResultAsync(
             IConnection connection,
             CommandWireProtocol<BsonDocument> isMasterProtocol,
             CancellationToken cancellationToken)
         {
             try
             {
-                var isMasterResult = await isMasterProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                var isMasterResult = await isMasterProtocol.ExecuteAsync(connection, cancellationToken);
                 return new IsMasterResult(isMasterResult);
             }
             catch (MongoCommandException ex) when (ex.Code == 11)

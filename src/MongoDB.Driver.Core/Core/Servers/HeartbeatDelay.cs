@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace MongoDB.Driver.Core.Servers
         // fields
         private readonly DateTime _earlyHeartbeatAt;
         private int _earlyHeartbeatHasBeenRequested;
-        private readonly TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
+        private readonly UniTaskCompletionSource<bool> _taskCompletionSource = new UniTaskCompletionSource<bool>();
         private readonly Timer _timer;
 
         // constructors
@@ -36,7 +37,7 @@ namespace MongoDB.Driver.Core.Servers
         }
 
         // properties
-        public Task Task
+        public UniTask UniTask
         {
             get { return _taskCompletionSource.Task; }
         }

@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
@@ -183,13 +184,13 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<long> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
+        public async UniTask<long> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(binding, nameof(binding));
 
             var operation = CreateOperation();
-            var cursor = await operation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
-            var result = await cursor.ToListAsync(cancellationToken).ConfigureAwait(false);
+            var cursor = await operation.ExecuteAsync(binding, cancellationToken);
+            var result = await cursor.ToListAsync(cancellationToken);
             return ExtractCountFromResult(result);
         }
 

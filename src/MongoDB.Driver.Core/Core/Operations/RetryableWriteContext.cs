@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
 
@@ -60,12 +61,12 @@ namespace MongoDB.Driver.Core.Operations
         /// <param name="retryRequested">if set to <c>true</c> [retry requested].</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A retryable write context.</returns>
-        public static async Task<RetryableWriteContext> CreateAsync(IWriteBinding binding, bool retryRequested, CancellationToken cancellationToken)
+        public static async UniTask<RetryableWriteContext> CreateAsync(IWriteBinding binding, bool retryRequested, CancellationToken cancellationToken)
         {
             var context = new RetryableWriteContext(binding, retryRequested);
             try
             {
-                await context.InitializeAsync(cancellationToken).ConfigureAwait(false);
+                await context.InitializeAsync(cancellationToken);
                 return context;
             }
             catch
@@ -186,10 +187,10 @@ namespace MongoDB.Driver.Core.Operations
             _channel = _channelSource.GetChannel(cancellationToken);
         }
 
-        private async Task InitializeAsync(CancellationToken cancellationToken)
+        private async UniTask InitializeAsync(CancellationToken cancellationToken)
         {
-            _channelSource = await _binding.GetWriteChannelSourceAsync(cancellationToken).ConfigureAwait(false);
-            _channel = await _channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false);
+            _channelSource = await _binding.GetWriteChannelSourceAsync(cancellationToken);
+            _channel = await _channelSource.GetChannelAsync(cancellationToken);
         }
     }
 }

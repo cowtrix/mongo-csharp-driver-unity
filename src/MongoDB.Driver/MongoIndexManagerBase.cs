@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 
@@ -83,42 +84,42 @@ namespace MongoDB.Driver
 
         /// <inheritdoc />
         [Obsolete("Use CreateOneAsync with a CreateIndexModel instead.")]
-        public virtual async Task<string> CreateOneAsync(IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async UniTask<string> CreateOneAsync(IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var model = new CreateIndexModel<TDocument>(keys, options);
-            var result = await CreateManyAsync(new[] { model }, cancellationToken).ConfigureAwait(false);
+            var result = await CreateManyAsync(new[] { model }, cancellationToken);
             return result.Single();
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateOneAsync(
+        public virtual async UniTask<string> CreateOneAsync(
             CreateIndexModel<TDocument> model,
             CreateOneIndexOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
              var createManyIndexOptions = ToCreateManyIndexesOptions(options);
-             var result = await CreateManyAsync(new[] { model }, createManyIndexOptions, cancellationToken).ConfigureAwait(false);
+             var result = await CreateManyAsync(new[] { model }, createManyIndexOptions, cancellationToken);
              return result.Single();
         }
 
         /// <inheritdoc />
         [Obsolete("Use CreateOneAsync with a CreateIndexModel instead.")]
-        public virtual async Task<string> CreateOneAsync(IClientSessionHandle session, IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual async UniTask<string> CreateOneAsync(IClientSessionHandle session, IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var model = new CreateIndexModel<TDocument>(keys, options);
-            var result = await CreateManyAsync(session, new[] { model }, cancellationToken).ConfigureAwait(false);
+            var result = await CreateManyAsync(session, new[] { model }, cancellationToken);
             return result.Single();
         }
 
         /// <inheritdoc />
-        public virtual async Task<string> CreateOneAsync(
+        public virtual async UniTask<string> CreateOneAsync(
             IClientSessionHandle session,
             CreateIndexModel<TDocument> model,
             CreateOneIndexOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var createManyIndexOptions = ToCreateManyIndexesOptions(options);
-            var result = await CreateManyAsync(session, new[] { model }, createManyIndexOptions, cancellationToken).ConfigureAwait(false);
+            var result = await CreateManyAsync(session, new[] { model }, createManyIndexOptions, cancellationToken);
             return result.Single();
         }
 
@@ -151,26 +152,26 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CreateManyIndexesOptions options,
+        public virtual UniTask<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CreateManyIndexesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task<IEnumerable<string>> CreateManyAsync(IClientSessionHandle session, IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<IEnumerable<string>> CreateManyAsync(IClientSessionHandle session, IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task<IEnumerable<string>> CreateManyAsync(
+        public virtual UniTask<IEnumerable<string>> CreateManyAsync(
             IClientSessionHandle session,
             IEnumerable<CreateIndexModel<TDocument>> models,
             CreateManyIndexesOptions options,
@@ -204,22 +205,22 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task DropAllAsync(DropIndexOptions options, CancellationToken cancellationToken)
+        public virtual UniTask DropAllAsync(DropIndexOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public abstract Task DropAllAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask DropAllAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
-        public virtual Task DropAllAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask DropAllAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task DropAllAsync(IClientSessionHandle session, DropIndexOptions options, CancellationToken cancellationToken)
+        public virtual UniTask DropAllAsync(IClientSessionHandle session, DropIndexOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -249,22 +250,22 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task DropOneAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask DropOneAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
-        public virtual Task DropOneAsync(string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask DropOneAsync(string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task DropOneAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask DropOneAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task DropOneAsync(IClientSessionHandle session, string name, DropIndexOptions options, CancellationToken cancellationToken)
+        public virtual UniTask DropOneAsync(IClientSessionHandle session, string name, DropIndexOptions options, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -282,10 +283,10 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task<IAsyncCursor<BsonDocument>> ListAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask<IAsyncCursor<BsonDocument>> ListAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<BsonDocument>> ListAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<IAsyncCursor<BsonDocument>> ListAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }

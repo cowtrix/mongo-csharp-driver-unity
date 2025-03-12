@@ -13,17 +13,15 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System.Threading.Tasks;
 
 namespace MongoDB.Driver.Core.Misc
 {
     internal static class TaskExtensions
     {
-        public static void IgnoreExceptions(this Task task)
+        public static void IgnoreExceptions(this UniTask task)
         {
-            task.ContinueWith(t => { var ignored = t.Exception; },
-                TaskContinuationOptions.OnlyOnFaulted |
-                TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 }

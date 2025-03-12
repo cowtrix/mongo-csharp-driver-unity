@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
@@ -82,26 +83,26 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        public static async Task<TResult> ExecuteAsync<TResult>(IRetryableReadOperation<TResult> operation, IReadBinding binding, bool retryRequested, CancellationToken cancellationToken)
+        public static async UniTask<TResult> ExecuteAsync<TResult>(IRetryableReadOperation<TResult> operation, IReadBinding binding, bool retryRequested, CancellationToken cancellationToken)
         {
-            using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested, cancellationToken).ConfigureAwait(false))
+            using (var context = await RetryableReadContext.CreateAsync(binding, retryRequested, cancellationToken))
             {
-                return await ExecuteAsync(operation, context, cancellationToken).ConfigureAwait(false);
+                return await ExecuteAsync(operation, context, cancellationToken);
             }
         }
 
-        public static async Task<TResult> ExecuteAsync<TResult>(IRetryableReadOperation<TResult> operation, RetryableReadContext context, CancellationToken cancellationToken)
+        public static async UniTask<TResult> ExecuteAsync<TResult>(IRetryableReadOperation<TResult> operation, RetryableReadContext context, CancellationToken cancellationToken)
         {
             if (!ShouldReadBeRetried(context))
             {
-                return await operation.ExecuteAttemptAsync(context, attempt: 1, transactionNumber: null, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAttemptAsync(context, attempt: 1, transactionNumber: null, cancellationToken);
             }
 
             var initialServerVersion = context.Channel.ConnectionDescription.ServerVersion;
             Exception originalException;
             try
             {
-                return await operation.ExecuteAttemptAsync(context, attempt: 1, transactionNumber: null, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAttemptAsync(context, attempt: 1, transactionNumber: null, cancellationToken);
             }
             catch (Exception ex) when (RetryabilityHelper.IsRetryableReadException(ex))
             {
@@ -130,7 +131,7 @@ namespace MongoDB.Driver.Core.Operations
 
             try
             {
-                return await operation.ExecuteAttemptAsync(context, attempt: 2, transactionNumber: null, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAttemptAsync(context, attempt: 2, transactionNumber: null, cancellationToken);
             }
             catch (Exception ex) when (ShouldThrowOriginalException(ex))
             {

@@ -41,7 +41,7 @@ namespace MongoDB.Driver.Linq.Expressions.ResultOperators
         public static LambdaExpression CreateAsyncAggregator(string methodName, Type sourceType)
         {
             var sourceParameter = Expression.Parameter(
-                typeof(Task<>).MakeGenericType(typeof(IAsyncCursor<>).MakeGenericType(sourceType)),
+                typeof(UniTask<>).MakeGenericType(typeof(IAsyncCursor<>).MakeGenericType(sourceType)),
                 "source");
 
             var cancellationTokenParameter = Expression.Parameter(typeof(CancellationToken), "ct");

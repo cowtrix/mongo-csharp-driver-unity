@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Operations;
@@ -49,8 +50,8 @@ namespace MongoDB.Driver
         /// Moves to the next batch of documents.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result indicates whether any more documents are available.</returns>
-        Task<bool> MoveNextAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask whose result indicates whether any more documents are available.</returns>
+        UniTask<bool> MoveNextAsync(CancellationToken cancellationToken = default(CancellationToken));
     }
 
     /// <summary>
@@ -114,12 +115,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="cursor">The cursor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is true if the cursor contains any documents.</returns>
-        public static async Task<bool> AnyAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is true if the cursor contains any documents.</returns>
+        public static async UniTask<bool> AnyAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (cursor)
             {
-                var batch = await GetFirstBatchAsync(cursor, cancellationToken).ConfigureAwait(false);
+                var batch = await GetFirstBatchAsync(cursor, cancellationToken);
                 return batch.Any();
             }
         }
@@ -146,12 +147,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="cursor">The cursor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the first document.</returns>
-        public static async Task<TDocument> FirstAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the first document.</returns>
+        public static async UniTask<TDocument> FirstAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (cursor)
             {
-                var batch = await GetFirstBatchAsync(cursor, cancellationToken).ConfigureAwait(false);
+                var batch = await GetFirstBatchAsync(cursor, cancellationToken);
                 return batch.First();
             }
         }
@@ -179,11 +180,11 @@ namespace MongoDB.Driver
         /// <param name="cursor">The cursor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task whose result is the first document of the cursor, or a default value if the cursor contains no documents.</returns>
-        public static async Task<TDocument> FirstOrDefaultAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
+        public static async UniTask<TDocument> FirstOrDefaultAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (cursor)
             {
-                var batch = await GetFirstBatchAsync(cursor, cancellationToken).ConfigureAwait(false);
+                var batch = await GetFirstBatchAsync(cursor, cancellationToken);
                 return batch.FirstOrDefault();
             }
         }
@@ -195,8 +196,8 @@ namespace MongoDB.Driver
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static Task ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Func<TDocument, Task> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static UniTask ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Func<TDocument, UniTask> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ForEachAsync(source, (doc, _) => processor(doc), cancellationToken);
         }
@@ -208,8 +209,8 @@ namespace MongoDB.Driver
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Func<TDocument, int, Task> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Func<TDocument, int, UniTask> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(source, nameof(source));
             Ensure.IsNotNull(processor, nameof(processor));
@@ -219,11 +220,11 @@ namespace MongoDB.Driver
             using (source)
             {
                 var index = 0;
-                while (await source.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await source.MoveNextAsync(cancellationToken))
                 {
                     foreach (var document in source.Current)
                     {
-                        await processor(document, index++).ConfigureAwait(false);
+                        await processor(document, index++);
                         cancellationToken.ThrowIfCancellationRequested();
                     }
                 }
@@ -236,14 +237,14 @@ namespace MongoDB.Driver
         /// <remarks>
         /// If your delegate is going to take a long time to execute or is going to block
         /// consider using a different overload of ForEachAsync that uses a delegate that
-        /// returns a Task instead.
+        /// returns a UniTask instead.
         /// </remarks>
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static Task ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Action<TDocument> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static UniTask ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Action<TDocument> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
             return ForEachAsync(source, (doc, _) => processor(doc), cancellationToken);
         }
@@ -254,14 +255,14 @@ namespace MongoDB.Driver
         /// <remarks>
         /// If your delegate is going to take a long time to execute or is going to block
         /// consider using a different overload of ForEachAsync that uses a delegate that
-        /// returns a Task instead.
+        /// returns a UniTask instead.
         /// </remarks>
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="processor">The processor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task that completes when all the documents have been processed.</returns>
-        public static async Task ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Action<TDocument, int> processor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask that completes when all the documents have been processed.</returns>
+        public static async UniTask ForEachAsync<TDocument>(this IAsyncCursor<TDocument> source, Action<TDocument, int> processor, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(source, nameof(source));
             Ensure.IsNotNull(processor, nameof(processor));
@@ -271,7 +272,7 @@ namespace MongoDB.Driver
             using (source)
             {
                 var index = 0;
-                while (await source.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await source.MoveNextAsync(cancellationToken))
                 {
                     foreach (var document in source.Current)
                     {
@@ -304,12 +305,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="cursor">The cursor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the only document of a cursor.</returns>
-        public static async Task<TDocument> SingleAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the only document of a cursor.</returns>
+        public static async UniTask<TDocument> SingleAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (cursor)
             {
-                var batch = await GetFirstBatchAsync(cursor, cancellationToken).ConfigureAwait(false);
+                var batch = await GetFirstBatchAsync(cursor, cancellationToken);
                 return batch.Single();
             }
         }
@@ -338,12 +339,12 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="cursor">The cursor.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the only document of a cursor, or a default value if the cursor contains no documents.</returns>
-        public static async Task<TDocument> SingleOrDefaultAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose result is the only document of a cursor, or a default value if the cursor contains no documents.</returns>
+        public static async UniTask<TDocument> SingleOrDefaultAsync<TDocument>(this IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (cursor)
             {
-                var batch = await GetFirstBatchAsync(cursor, cancellationToken).ConfigureAwait(false);
+                var batch = await GetFirstBatchAsync(cursor, cancellationToken);
                 return batch.SingleOrDefault();
             }
         }
@@ -392,8 +393,8 @@ namespace MongoDB.Driver
         /// <typeparam name="TDocument">The type of the document.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose value is the list of documents.</returns>
-        public static async Task<List<TDocument>> ToListAsync<TDocument>(this IAsyncCursor<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
+        /// <returns>A UniTask whose value is the list of documents.</returns>
+        public static async UniTask<List<TDocument>> ToListAsync<TDocument>(this IAsyncCursor<TDocument> source, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(source, nameof(source));
 
@@ -403,7 +404,7 @@ namespace MongoDB.Driver
             // exhausted the thing and don't need it anymore.
             using (source)
             {
-                while (await source.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+                while (await source.MoveNextAsync(cancellationToken))
                 {
                     list.AddRange(source.Current);
                     cancellationToken.ThrowIfCancellationRequested();
@@ -425,9 +426,9 @@ namespace MongoDB.Driver
             }
         }
 
-        private static async Task<IEnumerable<TDocument>> GetFirstBatchAsync<TDocument>(IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken)
+        private static async UniTask<IEnumerable<TDocument>> GetFirstBatchAsync<TDocument>(IAsyncCursor<TDocument> cursor, CancellationToken cancellationToken)
         {
-            if (await cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false))
+            if (await cursor.MoveNextAsync(cancellationToken))
             {
                 return cursor.Current;
             }

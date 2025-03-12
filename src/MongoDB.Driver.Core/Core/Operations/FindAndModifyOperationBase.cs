@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -136,13 +137,13 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public Task<TResult> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
+        public UniTask<TResult> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken)
         {
             return RetryableWriteOperationExecutor.ExecuteAsync(this, binding, _retryRequested, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public Task<TResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
+        public UniTask<TResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             return RetryableWriteOperationExecutor.ExecuteAsync(this, context, cancellationToken);
         }
@@ -165,7 +166,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<TResult> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken)
+        public async UniTask<TResult> ExecuteAttemptAsync(RetryableWriteContext context, int attempt, long? transactionNumber, CancellationToken cancellationToken)
         {
             var binding = context.Binding;
             var channelSource = context.ChannelSource;
@@ -174,7 +175,7 @@ namespace MongoDB.Driver.Core.Operations
             using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
                 var operation = CreateOperation(channelBinding.Session, channel.ConnectionDescription, transactionNumber);
-                using (var rawBsonDocument = await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false))
+                using (var rawBsonDocument = await operation.ExecuteAsync(channelBinding, cancellationToken))
                 {
                     return ProcessCommandResult(channel.ConnectionDescription.ConnectionId, rawBsonDocument);
                 }

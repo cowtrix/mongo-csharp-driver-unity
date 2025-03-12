@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 
 namespace MongoDB.Driver.Core.Bindings
@@ -86,7 +87,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException("NoCoreSession does not support AbortTransactionAsync.");
         }
@@ -119,7 +120,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotSupportedException("NoCoreSession does not support CommitTransactionAsync.");
         }

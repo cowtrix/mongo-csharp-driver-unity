@@ -13,95 +13,77 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using DnsClient;
 
 namespace MongoDB.Driver.Core.Misc
 {
     internal class DnsClientWrapper : IDnsResolver
     {
-        // private fields
-        private readonly LookupClient _lookupClient;
-
-        // constructors
-        public DnsClientWrapper()
-        {
-            _lookupClient = new LookupClient();
-        }
-
-        // public properties
-        public LookupClient LookupClient => _lookupClient;
-
-        // public methods
-        public List<SrvRecord> ResolveSrvRecords(string service, CancellationToken cancellationToken)
+        public async UniTask<List<SrvRecord>> ResolveSrvRecordsAsync(string service, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(service, nameof(service));
-            cancellationToken.ThrowIfCancellationRequested();
-            var response = _lookupClient.Query(service, QueryType.SRV, QueryClass.IN);
+            var response = await NetworkManager.Instance.ResolveDNS(service, "SRV");
             return GetSrvRecords(response);
         }
 
-        public async Task<List<SrvRecord>> ResolveSrvRecordsAsync(string service, CancellationToken cancellationToken)
-        {
-            Ensure.IsNotNull(service, nameof(service));
-            var response = await _lookupClient.QueryAsync(service, QueryType.SRV, QueryClass.IN, cancellationToken).ConfigureAwait(false);
-            return GetSrvRecords(response);
-        }
-
-        public List<TxtRecord> ResolveTxtRecords(string domainName, CancellationToken cancellationToken)
+        public async UniTask<List<TxtRecord>> ResolveTxtRecordsAsync(string domainName, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(domainName, nameof(domainName));
-            cancellationToken.ThrowIfCancellationRequested();
-            var response = _lookupClient.Query(domainName, QueryType.TXT, QueryClass.IN);
+            var response = await NetworkManager.Instance.ResolveDNS(domainName, "TXT");
             return GetTxtRecords(response);
         }
 
-        public async Task<List<TxtRecord>> ResolveTxtRecordsAsync(string domainName, CancellationToken cancellationToken)
+        private List<SrvRecord> GetSrvRecords(DnsResponse response)
         {
-            Ensure.IsNotNull(domainName, nameof(domainName));
-            var response = await _lookupClient.QueryAsync(domainName, QueryType.TXT, QueryClass.IN, cancellationToken).ConfigureAwait(false);
-            return GetTxtRecords(response);
-        }
-
-        // private methods
-        private List<SrvRecord> GetSrvRecords(IDnsQueryResponse response)
-        {
-            var wrappedSrvRecords = response.Answers.SrvRecords().ToList();
             var srvRecords = new List<SrvRecord>();
-            
-            foreach (var wrappedSrvRecord in wrappedSrvRecords)
-            {
-                var host = wrappedSrvRecord.Target.ToString();
-                var port = wrappedSrvRecord.Port;
-                var endPoint = new DnsEndPoint(host, port);
-                var timeToLive = TimeSpan.FromSeconds(wrappedSrvRecord.InitialTimeToLive);
-                var srvRecord = new SrvRecord(endPoint, timeToLive);
 
-                srvRecords.Add(srvRecord);
+            foreach (var record in response.Answer)
+            {
+                if (record.type == 33 && record.data.Split(' ').Length == 4)
+                {
+                    var parts = record.data.Split(' ');
+                    var host = parts[3].TrimEnd('.');
+                    var port = int.Parse(parts[2]);
+                    var ttl = TimeSpan.FromSeconds(record.ttl);
+
+                    srvRecords.Add(new SrvRecord(new DnsEndPoint(host, port), ttl));
+                }
             }
 
             return srvRecords;
         }
 
-        private List<TxtRecord> GetTxtRecords(IDnsQueryResponse response)
+        private List<TxtRecord> GetTxtRecords(DnsResponse response)
         {
-            var wrappedTxtRecords = response.Answers.TxtRecords().ToList();
             var txtRecords = new List<TxtRecord>();
 
-            foreach (var wrappedTxtRecord in wrappedTxtRecords)
+            foreach (var record in response.Answer)
             {
-                var strings = wrappedTxtRecord.Text.ToList();
-                var txtRecord = new TxtRecord(strings);
-
-                txtRecords.Add(txtRecord);
+                if (record.type == 16)
+                {
+                    txtRecords.Add(new TxtRecord(new List<string> { record.data }));
+                }
             }
 
             return txtRecords;
         }
+
+        // Sync methods not supported in WebGL - throw explicit error
+        public List<SrvRecord> ResolveSrvRecords(string service, CancellationToken cancellationToken)
+        {
+            throw new System.NotSupportedException("Synchronous DNS resolution not supported in WebGL");
+        }
+
+        public List<TxtRecord> ResolveTxtRecords(string domainName, CancellationToken cancellationToken)
+        {
+            throw new System.NotSupportedException("Synchronous DNS resolution not supported in WebGL");
+        }
     }
+
 }

@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 
@@ -250,7 +251,7 @@ namespace MongoDB.Driver
         /// <param name="mergeOptions">The merge options.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A cursor.</returns>
-        Task<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default);
+        UniTask<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Appends a match stage to the pipeline that matches derived documents and changes the result type to the derived type.
@@ -273,8 +274,8 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="collectionName">Name of the collection.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is a cursor.</returns>
-        Task<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask whose result is a cursor.</returns>
+        UniTask<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Appends a project stage to the pipeline.

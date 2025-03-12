@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Misc;
 
@@ -159,7 +160,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public virtual Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             return _wrapped.AbortTransactionAsync(cancellationToken);
@@ -200,7 +201,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public virtual Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             ThrowIfDisposed();
             return _wrapped.CommitTransactionAsync(cancellationToken);

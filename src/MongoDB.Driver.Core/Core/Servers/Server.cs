@@ -21,6 +21,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -166,11 +167,11 @@ namespace MongoDB.Driver.Core.Servers
             }
         }
 
-        public async Task<IChannelHandle> GetChannelAsync(CancellationToken cancellationToken)
+        public async UniTask<IChannelHandle> GetChannelAsync(CancellationToken cancellationToken)
         {
             ThrowIfNotOpen();
 
-            var connection = await _connectionPool.AcquireConnectionAsync(cancellationToken).ConfigureAwait(false);
+            var connection = await _connectionPool.AcquireConnectionAsync(cancellationToken);
             try
             {
                 // ignoring the user's cancellation token here because we don't
@@ -178,7 +179,7 @@ namespace MongoDB.Driver.Core.Servers
                 // wanted to cancel their operation. It will be better for the
                 // collective to complete opening the connection than the throw
                 // it away.
-                await connection.OpenAsync(CancellationToken.None).ConfigureAwait(false);
+                await connection.OpenAsync(CancellationToken.None);
                 return new ServerChannel(this, connection);
             }
             catch (Exception ex)
@@ -549,7 +550,7 @@ namespace MongoDB.Driver.Core.Servers
             }
 
             [Obsolete("Use the newest overload instead.")]
-            public Task<TResult> CommandAsync<TResult>(
+            public UniTask<TResult> CommandAsync<TResult>(
                 DatabaseNamespace databaseNamespace,
                 BsonDocument command,
                 IElementNameValidator commandValidator,
@@ -583,7 +584,7 @@ namespace MongoDB.Driver.Core.Servers
             }
 
             [Obsolete("Use the newest overload instead.")]
-            public Task<TResult> CommandAsync<TResult>(
+            public UniTask<TResult> CommandAsync<TResult>(
                 ICoreSession session,
                 ReadPreference readPreference,
                 DatabaseNamespace databaseNamespace,
@@ -619,7 +620,7 @@ namespace MongoDB.Driver.Core.Servers
                 return result;
             }
 
-            public Task<TResult> CommandAsync<TResult>(
+            public UniTask<TResult> CommandAsync<TResult>(
                 ICoreSession session,
                 ReadPreference readPreference,
                 DatabaseNamespace databaseNamespace,
@@ -676,7 +677,7 @@ namespace MongoDB.Driver.Core.Servers
                 return ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task<WriteConcernResult> DeleteAsync(
+            public UniTask<WriteConcernResult> DeleteAsync(
                 CollectionNamespace collectionNamespace,
                 BsonDocument query,
                 bool isMulti,
@@ -714,7 +715,7 @@ namespace MongoDB.Driver.Core.Servers
                 return ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task<CursorBatch<TDocument>> GetMoreAsync<TDocument>(
+            public UniTask<CursorBatch<TDocument>> GetMoreAsync<TDocument>(
               CollectionNamespace collectionNamespace,
               BsonDocument query,
               long cursorId,
@@ -760,7 +761,7 @@ namespace MongoDB.Driver.Core.Servers
                 return ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task<WriteConcernResult> InsertAsync<TDocument>(
+            public UniTask<WriteConcernResult> InsertAsync<TDocument>(
                CollectionNamespace collectionNamespace,
                WriteConcern writeConcern,
                IBsonSerializer<TDocument> serializer,
@@ -798,7 +799,7 @@ namespace MongoDB.Driver.Core.Servers
                 ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task KillCursorsAsync(
+            public UniTask KillCursorsAsync(
               IEnumerable<long> cursorIds,
               MessageEncoderSettings messageEncoderSettings,
               CancellationToken cancellationToken)
@@ -847,7 +848,7 @@ namespace MongoDB.Driver.Core.Servers
                 return ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task<CursorBatch<TDocument>> QueryAsync<TDocument>(
+            public UniTask<CursorBatch<TDocument>> QueryAsync<TDocument>(
              CollectionNamespace collectionNamespace,
              BsonDocument query,
              BsonDocument fields,
@@ -908,7 +909,7 @@ namespace MongoDB.Driver.Core.Servers
                 return ExecuteProtocol(protocol, cancellationToken);
             }
 
-            public Task<WriteConcernResult> UpdateAsync(
+            public UniTask<WriteConcernResult> UpdateAsync(
                CollectionNamespace collectionNamespace,
                MessageEncoderSettings messageEncoderSettings,
                WriteConcern writeConcern,
@@ -963,11 +964,11 @@ namespace MongoDB.Driver.Core.Servers
                 }
             }
 
-            private async Task ExecuteProtocolAsync(IWireProtocol protocol, CancellationToken cancellationToken)
+            private async UniTask ExecuteProtocolAsync(IWireProtocol protocol, CancellationToken cancellationToken)
             {
                 try
                 {
-                    await protocol.ExecuteAsync(_connection, cancellationToken).ConfigureAwait(false);
+                    await protocol.ExecuteAsync(_connection, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -976,11 +977,11 @@ namespace MongoDB.Driver.Core.Servers
                 }
             }
 
-            private async Task<TResult> ExecuteProtocolAsync<TResult>(IWireProtocol<TResult> protocol, CancellationToken cancellationToken)
+            private async UniTask<TResult> ExecuteProtocolAsync<TResult>(IWireProtocol<TResult> protocol, CancellationToken cancellationToken)
             {
                 try
                 {
-                    return await protocol.ExecuteAsync(_connection, cancellationToken).ConfigureAwait(false);
+                    return await protocol.ExecuteAsync(_connection, cancellationToken);
                 }
                 catch (Exception ex)
                 {

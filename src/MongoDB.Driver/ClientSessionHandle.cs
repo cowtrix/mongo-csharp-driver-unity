@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Misc;
@@ -91,7 +92,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _coreSession.AbortTransactionAsync(cancellationToken);
         }
@@ -115,7 +116,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _coreSession.CommitTransactionAsync(cancellationToken);
         }
@@ -153,7 +154,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public Task<TResult> WithTransactionAsync<TResult>(Func<IClientSessionHandle, CancellationToken, Task<TResult>> callbackAsync, TransactionOptions transactionOptions = null, CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask<TResult> WithTransactionAsync<TResult>(Func<IClientSessionHandle, CancellationToken, UniTask<TResult>> callbackAsync, TransactionOptions transactionOptions = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.IsNotNull(callbackAsync, nameof(callbackAsync));
 

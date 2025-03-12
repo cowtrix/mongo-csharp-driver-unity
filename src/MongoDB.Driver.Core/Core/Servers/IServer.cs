@@ -20,6 +20,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Events;
@@ -75,8 +76,8 @@ namespace MongoDB.Driver.Core.Servers
         /// Gets a channel to the server.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is a channel.</returns>
-        Task<IChannelHandle> GetChannelAsync(CancellationToken cancellationToken);
+        /// <returns>A UniTask whose result is a channel.</returns>
+        UniTask<IChannelHandle> GetChannelAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>

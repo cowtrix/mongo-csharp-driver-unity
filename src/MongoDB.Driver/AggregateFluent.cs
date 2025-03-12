@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
@@ -164,12 +165,12 @@ namespace MongoDB.Driver
             return aggregate.ToCursor(cancellationToken);
         }
 
-        public override async Task<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default)
+        public override async UniTask<IAsyncCursor<TOutput>> MergeAsync<TOutput>(IMongoCollection<TOutput> outputCollection, MergeStageOptions<TOutput> mergeOptions = null, CancellationToken cancellationToken = default)
         {
             Ensure.IsNotNull(outputCollection, nameof(outputCollection));
             mergeOptions = mergeOptions ?? new MergeStageOptions<TOutput>();
             var aggregate = WithPipeline(_pipeline.Merge<TInput, TResult, TOutput>(outputCollection, mergeOptions));
-            return await aggregate.ToCursorAsync(cancellationToken).ConfigureAwait(false);
+            return await aggregate.ToCursorAsync(cancellationToken);
         }
 
         public override IAggregateFluent<TNewResult> OfType<TNewResult>(IBsonSerializer<TNewResult> newResultSerializer)
@@ -185,7 +186,7 @@ namespace MongoDB.Driver
             return aggregate.ToCursor(cancellationToken);
         }
 
-        public override Task<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken)
+        public override UniTask<IAsyncCursor<TResult>> OutAsync(string collectionName, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(collectionName, nameof(collectionName));
             var outputCollection = Database.GetCollection<TResult>(collectionName);
@@ -286,7 +287,7 @@ namespace MongoDB.Driver
             }
         }
 
-        public override Task<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken)
+        public override UniTask<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken)
         {
             if (_session == null)
             {
@@ -337,7 +338,7 @@ namespace MongoDB.Driver
             }
         }
 
-        public override Task<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken)
+        public override UniTask<IAsyncCursor<TResult>> ToCursorAsync(CancellationToken cancellationToken)
         {
             if (_session == null)
             {

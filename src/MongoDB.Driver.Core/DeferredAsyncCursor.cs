@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver
@@ -29,7 +30,7 @@ namespace MongoDB.Driver
     {
         // fields
         private readonly Func<CancellationToken, IAsyncCursor<TDocument>> _execute;
-        private readonly Func<CancellationToken, Task<IAsyncCursor<TDocument>>> _executeAsync;
+        private readonly Func<CancellationToken, UniTask<IAsyncCursor<TDocument>>> _executeAsync;
         private IAsyncCursor<TDocument> _cursor;
         private readonly Action _disposeAction;
         private bool _disposed;
@@ -44,7 +45,7 @@ namespace MongoDB.Driver
         public DeferredAsyncCursor(
             Action disposeAction,
             Func<CancellationToken, IAsyncCursor<TDocument>> execute,
-            Func<CancellationToken, Task<IAsyncCursor<TDocument>>> executeAsync)
+            Func<CancellationToken, UniTask<IAsyncCursor<TDocument>>> executeAsync)
         {
             _disposeAction = Ensure.IsNotNull(disposeAction, nameof(disposeAction));
             _execute = Ensure.IsNotNull(execute, nameof(execute));
@@ -82,16 +83,16 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc/>
-        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken)
+        public async UniTask<bool> MoveNextAsync(CancellationToken cancellationToken)
         {
             ThrowIfDisposed();
 
             if (_cursor == null)
             {
-                _cursor = await _executeAsync(cancellationToken).ConfigureAwait(false);
+                _cursor = await _executeAsync(cancellationToken);
             }
 
-            return await _cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false);
+            return await _cursor.MoveNextAsync(cancellationToken);
         }
 
         /// <inheritdoc/>

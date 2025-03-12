@@ -15,6 +15,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Operations;
@@ -64,7 +65,7 @@ namespace MongoDB.Driver
         /// <param name="name">The name of the database to drop.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
-        Task DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops the database with the specified name.
@@ -75,7 +76,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Gets a database.
@@ -108,7 +109,7 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The database names.</returns>
-        Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -117,7 +118,7 @@ namespace MongoDB.Driver
         /// <param name="session">The session.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The database names.</returns>
-        Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             IClientSessionHandle session,                                              
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -169,8 +170,8 @@ namespace MongoDB.Driver
         /// Lists the databases on the server.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is a cursor.</returns>
-        Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        /// <returns>A UniTask whose result is a cursor.</returns>
+        UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -178,8 +179,8 @@ namespace MongoDB.Driver
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <param name="options">The options.</param>
-        /// <returns>A Task whose result is a cursor.</returns>
-        Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        /// <returns>A UniTask whose result is a cursor.</returns>
+        UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -190,9 +191,9 @@ namespace MongoDB.Driver
         /// <param name="session">The session.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is a cursor.
+        /// A UniTask whose result is a cursor.
         /// </returns>
-        Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -203,9 +204,9 @@ namespace MongoDB.Driver
         /// <param name="options">The options.</param>        
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is a cursor.
+        /// A UniTask whose result is a cursor.
         /// </returns>
-        Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             IClientSessionHandle session,
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -226,9 +227,9 @@ namespace MongoDB.Driver
         /// <param name="options">The session options.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is a client session.
+        /// A UniTask whose result is a client session.
         /// </returns>
-        Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Watches changes on all collections in all databases.
@@ -272,7 +273,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -288,7 +289,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A change stream.
         /// </returns>
-        Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,

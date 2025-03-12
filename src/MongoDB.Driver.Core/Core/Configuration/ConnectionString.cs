@@ -21,14 +21,13 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using DnsClient;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Compression;
 using MongoDB.Driver.Core.Misc;
 using MongoDB.Shared;
-using UnityEngine.Networking;
 
 namespace MongoDB.Driver.Core.Configuration
 {
@@ -525,7 +524,9 @@ namespace MongoDB.Driver.Core.Configuration
 
             var host = GetHostNameForDns();
 
-            var client = new LookupClient();
+
+
+            /*var client = new LookupClient();
 
             ConnectionStringScheme resolvedScheme;
             List<string> hosts;
@@ -543,8 +544,25 @@ namespace MongoDB.Driver.Core.Configuration
             }
 
             var txtResponse = client.Query(host, QueryType.TXT, QueryClass.IN);
-            var options = GetOptionsFromResponse(txtResponse);
+            var options = GetOptionsFromResponse(txtResponse);*/
 
+            ConnectionStringScheme resolvedScheme;
+            List<string> hosts;
+            if (resolveHosts)
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDB;
+                var srvResponse = NetworkManager.Instance.ResolveDNS(srvPrefix + host, "SRV").GetAwaiter().GetResult();
+                hosts = srvResponse.Answer.Select(a => a.data).ToList();
+                ValidateResolvedHosts(host, hosts);
+            }
+            else
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDBPlusSrv;
+                hosts = new List<string> { host };
+            }
+
+            var txtResponse = NetworkManager.Instance.ResolveDNS(host, "TXT").GetAwaiter().GetResult();
+            var options = txtResponse.Answer.Select(a => a.data).ToList();
             var resolvedOptions = GetResolvedOptions(options);
 
             return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
@@ -556,7 +574,7 @@ namespace MongoDB.Driver.Core.Configuration
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A resolved ConnectionString.</returns>
-        public Task<ConnectionString> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public UniTask<ConnectionString> ResolveAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             return ResolveAsync(resolveHosts: true, cancellationToken);
         }
@@ -568,7 +586,7 @@ namespace MongoDB.Driver.Core.Configuration
         /// <param name="resolveHosts">Whether to resolve hosts.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A resolved ConnectionString.</returns>
-        public async Task<ConnectionString> ResolveAsync(bool resolveHosts, CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask<ConnectionString> ResolveAsync(bool resolveHosts, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (_isResolved)
             {
@@ -577,14 +595,14 @@ namespace MongoDB.Driver.Core.Configuration
 
             var host = GetHostNameForDns();
 
-            var client = new LookupClient();
+            /*var client = new LookupClient();
 
             ConnectionStringScheme resolvedScheme;
             List<string> hosts;
             if (resolveHosts)
             {
                 resolvedScheme = ConnectionStringScheme.MongoDB;
-                var srvResponse = await client.QueryAsync(srvPrefix + host, QueryType.SRV, QueryClass.IN).ConfigureAwait(false);
+                var srvResponse = await client.QueryAsync(srvPrefix + host, QueryType.SRV, QueryClass.IN);
                 hosts = GetHostsFromResponse(srvResponse);
                 ValidateResolvedHosts(host, hosts);
             }
@@ -594,9 +612,28 @@ namespace MongoDB.Driver.Core.Configuration
                 hosts = new List<string> { host };
             }
 
-            var txtResponse = await client.QueryAsync(host, QueryType.TXT, QueryClass.IN).ConfigureAwait(false);
+            var txtResponse = await client.QueryAsync(host, QueryType.TXT, QueryClass.IN);
             var options = GetOptionsFromResponse(txtResponse);
 
+            var resolvedOptions = GetResolvedOptions(options);*/
+
+            ConnectionStringScheme resolvedScheme;
+            List<string> hosts;
+            if (resolveHosts)
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDB;
+                var srvResponse = await NetworkManager.Instance.ResolveDNS(srvPrefix + host, "SRV");
+                hosts = GetHostsFromResponse(srvResponse);
+                ValidateResolvedHosts(host, hosts);
+            }
+            else
+            {
+                resolvedScheme = ConnectionStringScheme.MongoDBPlusSrv;
+                hosts = new List<string> { host };
+            }
+
+            var txtResponse = await NetworkManager.Instance.ResolveDNS(host, "TXT");
+            var options = txtResponse.Answer.Select(a => a.data).ToList();
             var resolvedOptions = GetResolvedOptions(options);
 
             return BuildResolvedConnectionString(resolvedScheme, hosts, resolvedOptions);
@@ -1160,7 +1197,43 @@ namespace MongoDB.Driver.Core.Configuration
             return value;
         }
 
-        private List<string> GetHostsFromResponse(IDnsQueryResponse response)
+        private List<string> GetHostsFromResponse(DnsResponse response)
+        {
+            var results = new List<string>();
+
+            if (response?.Answer == null)
+                return results;
+
+            foreach (var record in response.Answer)
+            {
+                // SRV records are type 33
+                if (record.type != 33 || string.IsNullOrEmpty(record.data))
+                    continue;
+
+                var parts = record.data.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                // Validate SRV record format: "priority weight port target"
+                if (parts.Length < 4)
+                    continue;
+
+                try
+                {
+                    var port = int.Parse(parts[2]);  // Validate port is numeric
+                    var host = parts[3].TrimEnd('.');  // Remove FQDN trailing dot
+
+                    results.Add($"{host}:{port}");
+                }
+                catch (FormatException)
+                {
+                    // Log or handle invalid port format if needed
+                    continue;
+                }
+            }
+
+            return results;
+        }
+
+        /*private List<string> GetHostsFromResponse(IDnsQueryResponse response)
         {
             var hosts = new List<string>();
             foreach (var srvRecord in response.Answers.SrvRecords())
@@ -1187,13 +1260,13 @@ namespace MongoDB.Driver.Core.Configuration
             }
 
             return txtRecords.Select(tr => tr.Text.Aggregate("", (acc, s) => acc + Uri.UnescapeDataString(s))).ToList();
-        }
+        }*/
 
-        private NameValueCollection GetResolvedOptions(List<string> options)
+        private NameValueCollection GetResolvedOptions(IEnumerable<string> options)
         {
             // Build a dummy connection string in order to parse the options
             var dummyConnectionString = "mongodb://localhost/";
-            if (options.Count > 0)
+            if (options.Count() > 0)
             {
                 dummyConnectionString += "?" + string.Join("&", options);
             }
@@ -1240,8 +1313,8 @@ namespace MongoDB.Driver.Core.Configuration
                     return false;
                 }
 
-            // loop from back to front making sure that all of b is at the back of a, in order.
-            for (int ai = a.Length - 1, bi = b.Length - 1; bi >= 0; ai--, bi--)
+                // loop from back to front making sure that all of b is at the back of a, in order.
+                for (int ai = a.Length - 1, bi = b.Length - 1; bi >= 0; ai--, bi--)
                 {
                     if (a[ai] != b[bi])
                     {

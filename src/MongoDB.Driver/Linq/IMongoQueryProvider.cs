@@ -17,6 +17,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 
 namespace MongoDB.Driver.Linq
@@ -50,6 +51,6 @@ namespace MongoDB.Driver.Linq
         /// <param name="expression">An expression tree that represents a LINQ query.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The value that results from executing the specified query.</returns>
-        Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

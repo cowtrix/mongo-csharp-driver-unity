@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Servers;
@@ -111,8 +112,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// Aborts the transaction.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask.</returns>
+        UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// The driver is about to send a command on this session. Called to track session state.
@@ -147,8 +148,8 @@ namespace MongoDB.Driver.Core.Bindings
         /// Commits the transaction.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task.</returns>
-        Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask.</returns>
+        UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Starts a transaction.

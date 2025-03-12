@@ -17,6 +17,7 @@ using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Misc;
@@ -74,7 +75,7 @@ namespace MongoDB.Driver
         }
 
         [Obsolete("Use CountDocumentsAsync instead.")]
-        public override Task<long> CountAsync(CancellationToken cancellationToken)
+        public override UniTask<long> CountAsync(CancellationToken cancellationToken)
         {
             var options = CreateCountOptions();
             if (_session == null)
@@ -100,7 +101,7 @@ namespace MongoDB.Driver
             }
         }
 
-        public override Task<long> CountDocumentsAsync(CancellationToken cancellationToken)
+        public override UniTask<long> CountDocumentsAsync(CancellationToken cancellationToken)
         {
             var options = CreateCountOptions();
             if (_session == null)
@@ -165,7 +166,7 @@ namespace MongoDB.Driver
             }
         }
 
-        public override Task<IAsyncCursor<TProjection>> ToCursorAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override UniTask<IAsyncCursor<TProjection>> ToCursorAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             if (_session == null)
             {

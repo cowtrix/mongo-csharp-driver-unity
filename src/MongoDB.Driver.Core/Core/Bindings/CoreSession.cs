@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Misc;
@@ -160,7 +161,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public async Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             EnsureAbortTransactionCanBeCalled(nameof(AbortTransaction));
 
@@ -174,7 +175,7 @@ namespace MongoDB.Driver.Core.Bindings
                 try
                 {
                     var firstAttempt = CreateAbortTransactionOperation();
-                    await ExecuteEndTransactionOnPrimaryAsync(firstAttempt, cancellationToken).ConfigureAwait(false);
+                    await ExecuteEndTransactionOnPrimaryAsync(firstAttempt, cancellationToken);
                     return;
                 }
                 catch (Exception exception) when (ShouldRetryEndTransactionException(exception))
@@ -189,7 +190,7 @@ namespace MongoDB.Driver.Core.Bindings
                 try
                 {
                     var secondAttempt = CreateAbortTransactionOperation();
-                    await ExecuteEndTransactionOnPrimaryAsync(secondAttempt, cancellationToken).ConfigureAwait(false);
+                    await ExecuteEndTransactionOnPrimaryAsync(secondAttempt, cancellationToken);
                 }
                 catch
                 {
@@ -285,7 +286,7 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         /// <inheritdoc />
-        public async Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             EnsureCommitTransactionCanBeCalled(nameof(CommitTransaction));
 
@@ -300,7 +301,7 @@ namespace MongoDB.Driver.Core.Bindings
                 try
                 {
                     var firstAttempt = CreateCommitTransactionOperation(IsFirstCommitAttemptRetry());
-                    await ExecuteEndTransactionOnPrimaryAsync(firstAttempt, cancellationToken).ConfigureAwait(false);
+                    await ExecuteEndTransactionOnPrimaryAsync(firstAttempt, cancellationToken);
                     return;
                 }
                 catch (Exception exception) when (ShouldRetryEndTransactionException(exception))
@@ -310,7 +311,7 @@ namespace MongoDB.Driver.Core.Bindings
                 }
 
                 var secondAttempt = CreateCommitTransactionOperation(isCommitRetry: true);
-                await ExecuteEndTransactionOnPrimaryAsync(secondAttempt, cancellationToken).ConfigureAwait(false);
+                await ExecuteEndTransactionOnPrimaryAsync(secondAttempt, cancellationToken);
             }
             finally
             {
@@ -478,12 +479,12 @@ namespace MongoDB.Driver.Core.Bindings
             }
         }
 
-        private async Task<TResult> ExecuteEndTransactionOnPrimaryAsync<TResult>(IReadOperation<TResult> operation, CancellationToken cancellationToken)
+        private async UniTask<TResult> ExecuteEndTransactionOnPrimaryAsync<TResult>(IReadOperation<TResult> operation, CancellationToken cancellationToken)
         {
             using (var sessionHandle = new NonDisposingCoreSessionHandle(this))
             using (var binding = new WritableServerBinding(_cluster, sessionHandle))
             {
-                return await operation.ExecuteAsync(binding, cancellationToken).ConfigureAwait(false);
+                return await operation.ExecuteAsync(binding, cancellationToken);
             }
         }
 

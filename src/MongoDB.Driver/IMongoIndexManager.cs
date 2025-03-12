@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 
@@ -106,7 +107,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is an <see cref="IEnumerable{String}" /> of the names of the indexes that were created.
         /// </returns>
-        Task<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<IEnumerable<string>> CreateManyAsync(IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Creates multiple indexes.
@@ -117,7 +118,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is an <see cref="IEnumerable{String}" /> of the names of the indexes that were created.
         /// </returns>
-        Task<IEnumerable<string>> CreateManyAsync(
+        UniTask<IEnumerable<string>> CreateManyAsync(
             IEnumerable<CreateIndexModel<TDocument>> models,
             CreateManyIndexesOptions options,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -131,7 +132,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is an <see cref="IEnumerable{String}" /> of the names of the indexes that were created.
         /// </returns>
-        Task<IEnumerable<string>> CreateManyAsync(IClientSessionHandle session, IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<IEnumerable<string>> CreateManyAsync(IClientSessionHandle session, IEnumerable<CreateIndexModel<TDocument>> models, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Creates multiple indexes.
@@ -143,7 +144,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is an <see cref="IEnumerable{String}" /> of the names of the indexes that were created.
         /// </returns>
-        Task<IEnumerable<string>> CreateManyAsync(
+        UniTask<IEnumerable<string>> CreateManyAsync(
             IClientSessionHandle session,
             IEnumerable<CreateIndexModel<TDocument>> models,
             CreateManyIndexesOptions options,
@@ -214,7 +215,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is the name of the index that was created.
         /// </returns>
-        Task<string> CreateOneAsync(
+        UniTask<string> CreateOneAsync(
             CreateIndexModel<TDocument> model,
             CreateOneIndexOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -229,7 +230,7 @@ namespace MongoDB.Driver
         /// A task whose result is the name of the index that was created.
         /// </returns>
         [Obsolete("Use CreateOneAsync with a CreateIndexModel instead.")]
-        Task<string> CreateOneAsync(IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<string> CreateOneAsync(IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Creates an index.
@@ -242,7 +243,7 @@ namespace MongoDB.Driver
         /// A task whose result is the name of the index that was created.
         /// </returns>
         [Obsolete("Use CreateOneAsyc with a CreateIndexModel instead.")]
-        Task<string> CreateOneAsync(IClientSessionHandle session, IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<string> CreateOneAsync(IClientSessionHandle session, IndexKeysDefinition<TDocument> keys, CreateIndexOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Creates an index.
@@ -254,7 +255,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task whose result is the name of the index that was created.
         /// </returns>
-        Task<string> CreateOneAsync(
+        UniTask<string> CreateOneAsync(
             IClientSessionHandle session,
             CreateIndexModel<TDocument> model,
             CreateOneIndexOptions options = null,
@@ -296,14 +297,14 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropAllAsync(DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropAllAsync(DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops all the indexes.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
-        Task DropAllAsync(CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropAllAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops all the indexes.
@@ -313,7 +314,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropAllAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropAllAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops all the indexes.
@@ -324,7 +325,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropAllAsync(IClientSessionHandle session, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropAllAsync(IClientSessionHandle session, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops an index by its name.
@@ -364,7 +365,7 @@ namespace MongoDB.Driver
         /// <param name="name">The name.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
-        Task DropOneAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropOneAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops an index by its name.
@@ -373,7 +374,7 @@ namespace MongoDB.Driver
         /// <param name="options">The options. </param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A task.</returns>
-        Task DropOneAsync(string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropOneAsync(string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops an index by its name.
@@ -384,7 +385,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropOneAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropOneAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Drops an index by its name.
@@ -396,7 +397,7 @@ namespace MongoDB.Driver
         /// <returns>
         /// A task.
         /// </returns>
-        Task DropOneAsync(IClientSessionHandle session, string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask DropOneAsync(IClientSessionHandle session, string name, DropIndexOptions options, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Lists the indexes.
@@ -419,8 +420,8 @@ namespace MongoDB.Driver
         /// Lists the indexes.
         /// </summary>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is a cursor.</returns>
-        Task<IAsyncCursor<BsonDocument>> ListAsync(CancellationToken cancellationToken = default(CancellationToken));
+        /// <returns>A UniTask whose result is a cursor.</returns>
+        UniTask<IAsyncCursor<BsonDocument>> ListAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Lists the indexes.
@@ -428,8 +429,8 @@ namespace MongoDB.Driver
         /// <param name="session">The session.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// A Task whose result is a cursor.
+        /// A UniTask whose result is a cursor.
         /// </returns>
-        Task<IAsyncCursor<BsonDocument>> ListAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken));
+        UniTask<IAsyncCursor<BsonDocument>> ListAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

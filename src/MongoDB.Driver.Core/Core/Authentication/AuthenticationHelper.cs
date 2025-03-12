@@ -21,6 +21,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Driver.Core.Connections;
@@ -45,7 +46,7 @@ namespace MongoDB.Driver.Core.Authentication
             }
         }
 
-        public static async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public static async UniTask AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -55,7 +56,7 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 foreach (var authenticator in connection.Settings.Authenticators)
                 {
-                    await authenticator.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+                    await authenticator.AuthenticateAsync(connection, description, cancellationToken);
                 }
             }
         }

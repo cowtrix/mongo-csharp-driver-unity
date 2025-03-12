@@ -19,6 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 
 namespace MongoDB.Driver.Core.Operations
@@ -43,8 +44,8 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="binding">The binding.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the operation.</returns>
-        Task<TResult> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken);
+        /// <returns>A UniTask whose result is the result of the operation.</returns>
+        UniTask<TResult> ExecuteAsync(IReadBinding binding, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -67,7 +68,7 @@ namespace MongoDB.Driver.Core.Operations
         /// </summary>
         /// <param name="binding">The binding.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>A Task whose result is the result of the operation.</returns>
-        Task<TResult> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken);
+        /// <returns>A UniTask whose result is the result of the operation.</returns>
+        UniTask<TResult> ExecuteAsync(IWriteBinding binding, CancellationToken cancellationToken);
     }
 }

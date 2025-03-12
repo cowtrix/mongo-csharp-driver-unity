@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Operations;
@@ -46,10 +47,10 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask DropDatabaseAsync(string name, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
-        public virtual Task DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask DropDatabaseAsync(IClientSessionHandle session, string name, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
@@ -73,14 +74,14 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        public virtual UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        public virtual UniTask<IAsyncCursor<string>> ListDatabaseNamesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -119,10 +120,10 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public virtual UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -130,13 +131,13 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(IClientSessionHandle session, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public virtual Task<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
+        public virtual UniTask<IAsyncCursor<BsonDocument>> ListDatabasesAsync(
             IClientSessionHandle session, 
             ListDatabasesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -151,7 +152,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<IClientSessionHandle> StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
@@ -176,7 +177,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public virtual UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -185,7 +186,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
+        public virtual UniTask<IChangeStreamCursor<TResult>> WatchAsync<TResult>(
             IClientSessionHandle session,
             PipelineDefinition<ChangeStreamDocument<BsonDocument>, TResult> pipeline,
             ChangeStreamOptions options = null,

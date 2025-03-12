@@ -16,6 +16,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver.Core.Bindings;
@@ -53,7 +54,7 @@ namespace MongoDB.Driver.Core.Operations
                 cancellationToken);
         }
 
-        protected override Task<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, InsertRequest request, CancellationToken cancellationToken)
+        protected override UniTask<WriteConcernResult> ExecuteProtocolAsync(IChannelHandle channel, InsertRequest request, CancellationToken cancellationToken)
         {
             var documentSource = new BatchableSource<BsonDocument>(new[] { request.Document });
 

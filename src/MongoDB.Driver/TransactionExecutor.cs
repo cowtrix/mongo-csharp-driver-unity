@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Support;
 
@@ -60,9 +61,9 @@ namespace MongoDB.Driver
             }
         }
 
-        public static async Task<TResult> ExecuteWithRetriesAsync<TResult>(
+        public static async UniTask<TResult> ExecuteWithRetriesAsync<TResult>(
             IClientSessionHandle clientSession,
-            Func<IClientSessionHandle, CancellationToken, Task<TResult>> callbackAsync,
+            Func<IClientSessionHandle, CancellationToken, UniTask<TResult>> callbackAsync,
             TransactionOptions transactionOptions,
             IClock clock,
             CancellationToken cancellationToken)
@@ -72,7 +73,7 @@ namespace MongoDB.Driver
             {
                 clientSession.StartTransaction(transactionOptions);
 
-                var callbackOutcome = await ExecuteCallbackAsync(clientSession, callbackAsync, startTime, clock, cancellationToken).ConfigureAwait(false);
+                var callbackOutcome = await ExecuteCallbackAsync(clientSession, callbackAsync, startTime, clock, cancellationToken);
                 if (callbackOutcome.ShouldRetryTransaction)
                 {
                     continue;
@@ -82,7 +83,7 @@ namespace MongoDB.Driver
                     return callbackOutcome.Result; // assume callback intentionally ended the transaction
                 }
 
-                var transactionHasBeenCommitted = await CommitWithRetriesAsync(clientSession, startTime, clock, cancellationToken).ConfigureAwait(false);
+                var transactionHasBeenCommitted = await CommitWithRetriesAsync(clientSession, startTime, clock, cancellationToken);
                 if (transactionHasBeenCommitted)
                 {
                     return callbackOutcome.Result;
@@ -118,18 +119,18 @@ namespace MongoDB.Driver
             }
         }
 
-        private static async Task<CallbackOutcome<TResult>> ExecuteCallbackAsync<TResult>(IClientSessionHandle clientSession, Func<IClientSessionHandle, CancellationToken, Task<TResult>> callbackAsync, DateTime startTime, IClock clock, CancellationToken cancellationToken)
+        private static async UniTask<CallbackOutcome<TResult>> ExecuteCallbackAsync<TResult>(IClientSessionHandle clientSession, Func<IClientSessionHandle, CancellationToken, UniTask<TResult>> callbackAsync, DateTime startTime, IClock clock, CancellationToken cancellationToken)
         {
             try
             {
-                var result = await callbackAsync(clientSession, cancellationToken).ConfigureAwait(false);
+                var result = await callbackAsync(clientSession, cancellationToken);
                 return new CallbackOutcome<TResult>.WithResult(result);
             }
             catch (Exception ex)
             {
                 if (IsTransactionInStartingOrInProgressState(clientSession))
                 {
-                    await clientSession.AbortTransactionAsync(cancellationToken).ConfigureAwait(false);
+                    await clientSession.AbortTransactionAsync(cancellationToken);
                 }
 
                 if (HasErrorLabel(ex, TransientTransactionErrorLabel) && !HasTimedOut(startTime, clock.UtcNow))
@@ -168,13 +169,13 @@ namespace MongoDB.Driver
             }
         }
 
-        private static async Task<bool> CommitWithRetriesAsync(IClientSessionHandle clientSession, DateTime startTime, IClock clock, CancellationToken cancellationToken)
+        private static async UniTask<bool> CommitWithRetriesAsync(IClientSessionHandle clientSession, DateTime startTime, IClock clock, CancellationToken cancellationToken)
         {
             while (true)
             {
                 try
                 {
-                    await clientSession.CommitTransactionAsync(cancellationToken).ConfigureAwait(false);
+                    await clientSession.CommitTransactionAsync(cancellationToken);
                     return true;
                 }
                 catch (Exception ex)

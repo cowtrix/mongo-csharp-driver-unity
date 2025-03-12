@@ -16,6 +16,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson.Serialization;
 
 namespace MongoDB.Driver
@@ -45,7 +46,7 @@ namespace MongoDB.Driver
 
         /// <inheritdoc />
         [Obsolete("Use CountDocumentsAsync instead.")]
-        public abstract Task<long> CountAsync(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract UniTask<long> CountAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         /// <inheritdoc />
         public virtual long CountDocuments(CancellationToken cancellationToken = default(CancellationToken))
@@ -54,7 +55,7 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public virtual Task<long> CountDocumentsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public virtual UniTask<long> CountDocumentsAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
@@ -78,6 +79,6 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public abstract Task<IAsyncCursor<TProjection>> ToCursorAsync(CancellationToken cancellationToken);
+        public abstract UniTask<IAsyncCursor<TProjection>> ToCursorAsync(CancellationToken cancellationToken);
     }
 }

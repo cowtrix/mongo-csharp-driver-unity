@@ -13,6 +13,7 @@
 * limitations under the License.
 */
 
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
@@ -132,19 +133,19 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         /// <inheritdoc/>
-        public async Task<bool> MoveNextAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async UniTask<bool> MoveNextAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             bool hasMore;
             while (true)
             {
                 try
                 {
-                    hasMore = await _cursor.MoveNextAsync(cancellationToken).ConfigureAwait(false);
+                    hasMore = await _cursor.MoveNextAsync(cancellationToken);
                     break;
                 }
                 catch (Exception ex) when (RetryabilityHelper.IsResumableChangeStreamException(ex))
                 {
-                    var newCursor = await ResumeAsync(cancellationToken).ConfigureAwait(false);
+                    var newCursor = await ResumeAsync(cancellationToken);
                     _cursor.Dispose();
                     _cursor = newCursor;
                 }
@@ -260,10 +261,10 @@ namespace MongoDB.Driver.Core.Operations
             return _changeStreamOperation.Resume(_binding, cancellationToken);
         }
 
-        private async Task<IAsyncCursor<RawBsonDocument>> ResumeAsync(CancellationToken cancellationToken)
+        private async UniTask<IAsyncCursor<RawBsonDocument>> ResumeAsync(CancellationToken cancellationToken)
         {
             ReconfigureOperationResumeValues();
-            return await _changeStreamOperation.ResumeAsync(_binding, cancellationToken).ConfigureAwait(false);
+            return await _changeStreamOperation.ResumeAsync(_binding, cancellationToken);
         }
 
         internal struct ResumeValues

@@ -17,6 +17,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
@@ -85,7 +86,7 @@ namespace MongoDB.Driver.Core.Authentication
         }
 
         /// <inheritdoc/>
-        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public async UniTask AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -98,7 +99,7 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
                 var isMasterProtocol = IsMasterHelper.CreateProtocol(command);
-                var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
+                var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken);
                 var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
                 description = new ConnectionDescription(
                     description.ConnectionId, 
@@ -107,7 +108,7 @@ namespace MongoDB.Driver.Core.Authentication
             }  
             
             var authenticator = CreateAuthenticator(connection, description);
-            await authenticator.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+            await authenticator.AuthenticateAsync(connection, description, cancellationToken);
         }
 
 
